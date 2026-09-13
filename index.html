@@ -1194,9 +1194,56 @@ function policyDuration(fromISO, onISO){
   return parts.length ? parts.join(", ") : "under a month";
 }
 
+var BENEF = ["revocable", "irrevocable", "unknown"];
+var ROLES = ["primary", "contingent"];
+
+// A policy can name several beneficiaries, and under Philippine practice each
+// designation stands on its own: one share can be irrevocable while another is
+// not. So revocability belongs to the beneficiary, never to the policy.
+function buildBeneficiaries(rows){
+  return (rows || []).map(function(r){
+    r = r || {};
+    var share = parseFloat(String(r.share == null ? "" : r.share).replace(/[^0-9.]/g, ""));
+    return {
+      name:         String(r.name || "").trim(),
+      relationship: String(r.relationship || "").trim(),
+      share:        isFinite(share) && share > 0 ? Math.min(share, 100) : 0,
+      role:         pick(r.role, ROLES, "primary"),
+      revocability: pick(r.revocability, BENEF, "unknown")
+    };
+  }).filter(function(b){ return b.name !== "" || b.share > 0; });
+}
+
+function primaryShare(bens){
+  return (bens || []).reduce(function(t, b){
+    return t + (b.role === "primary" ? b.share : 0);
+  }, 0);
+}
+
+// The share of a policy that lands outside the estate. Only primary designations
+// count: a contingent beneficiary takes nothing unless the primary predeceases.
+function irrevocableShare(bens){
+  return (bens || []).reduce(function(t, b){
+    return t + (b.role === "primary" && b.revocability === "irrevocable" ? b.share : 0);
+  }, 0);
+}
+
+// A soft check, not a gate. Shares that do not total 100 are usually a sheet
+// half-filled, but they are occasionally what the policy actually says — and
+// that is exactly the discrepancy worth carrying into the meeting.
+function shareNote(bens){
+  var list = bens || [];
+  if (!list.length) return "";
+  var primary = list.filter(function(b){ return b.role === "primary"; });
+  if (!primary.length) return "No primary beneficiary named — only contingents.";
+  var total = primaryShare(list);
+  if (total === 0) return "No shares entered yet.";
+  if (Math.abs(total - 100) < 0.01) return "";
+  return "Primary shares total " + (Math.round(total * 100) / 100) + "%, not 100% — confirm against the policy.";
+}
+
 var STATUS = ["inforce", "lapsed", "verify"];
 var PLANS  = ["traditional", "vul"];
-var BENEF  = ["revocable", "irrevocable", "unknown"];
 
 // Policies are recorded, not computed. The analysis sizes the cover a plan
 // NEEDS; what the client already holds is a fact about the estate, and the two
@@ -1214,11 +1261,10 @@ function buildPolicies(rows){
       status:    pick(r.status, STATUS, "verify"),
       coverage:  money(r.coverage),
       plan:      pick(r.plan, PLANS, "traditional"),
-      beneficiary: String(r.beneficiary || "").trim(),
-      revocability: pick(r.revocability, BENEF, "unknown")
+      beneficiaries: buildBeneficiaries(r.beneficiaries)
     };
   }).filter(function(p){
-    return p.insurer !== "" || p.product !== "" || p.coverage > 0;   // drop untouched cards
+    return p.insurer !== "" || p.product !== "" || p.coverage > 0 || p.beneficiaries.length;
   });
 }
 

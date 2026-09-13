@@ -211,6 +211,25 @@ button.add:hover{border-color:var(--accent);background:var(--accent-soft)}
   .policy-n{font-size:8pt;color:#000}
   .policy input[readonly]{color:#000}
 }
+
+/* ---------- beneficiaries, inside a policy card ---------- */
+.bens{margin-top:15px;padding-top:13px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:3px}
+.bens .benrows{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+.row.ben,.rowhead.ben{grid-template-columns:1.6fr 1.1fr .7fr 1.1fr 1.2fr 24px;gap:8px 10px}
+.rowhead.ben{margin-top:8px}
+.bens .said{margin-top:8px;font-size:11.5px}
+.bens .said:not(:empty){color:var(--seal);font-weight:600}
+@media (max-width:860px){
+  .row.ben{grid-template-columns:1fr 1fr}
+  .rowhead.ben{display:none}
+  .row.ben .kill{grid-column:2;justify-self:end}
+}
+@media print{
+  .bens{border-top:.4pt solid #aaa;margin-top:7pt;padding-top:5pt}
+  .row.ben,.rowhead.ben{grid-template-columns:1.6fr 1.1fr .7fr 1.1fr 1.2fr;gap:4pt 7pt}
+  .rowhead.ben{display:grid}
+  .bens .said{display:none}
+}
 </style>
 </head>
 <body>
@@ -583,9 +602,56 @@ function policyDuration(fromISO, onISO){
   return parts.length ? parts.join(", ") : "under a month";
 }
 
+var BENEF = ["revocable", "irrevocable", "unknown"];
+var ROLES = ["primary", "contingent"];
+
+// A policy can name several beneficiaries, and under Philippine practice each
+// designation stands on its own: one share can be irrevocable while another is
+// not. So revocability belongs to the beneficiary, never to the policy.
+function buildBeneficiaries(rows){
+  return (rows || []).map(function(r){
+    r = r || {};
+    var share = parseFloat(String(r.share == null ? "" : r.share).replace(/[^0-9.]/g, ""));
+    return {
+      name:         String(r.name || "").trim(),
+      relationship: String(r.relationship || "").trim(),
+      share:        isFinite(share) && share > 0 ? Math.min(share, 100) : 0,
+      role:         pick(r.role, ROLES, "primary"),
+      revocability: pick(r.revocability, BENEF, "unknown")
+    };
+  }).filter(function(b){ return b.name !== "" || b.share > 0; });
+}
+
+function primaryShare(bens){
+  return (bens || []).reduce(function(t, b){
+    return t + (b.role === "primary" ? b.share : 0);
+  }, 0);
+}
+
+// The share of a policy that lands outside the estate. Only primary designations
+// count: a contingent beneficiary takes nothing unless the primary predeceases.
+function irrevocableShare(bens){
+  return (bens || []).reduce(function(t, b){
+    return t + (b.role === "primary" && b.revocability === "irrevocable" ? b.share : 0);
+  }, 0);
+}
+
+// A soft check, not a gate. Shares that do not total 100 are usually a sheet
+// half-filled, but they are occasionally what the policy actually says — and
+// that is exactly the discrepancy worth carrying into the meeting.
+function shareNote(bens){
+  var list = bens || [];
+  if (!list.length) return "";
+  var primary = list.filter(function(b){ return b.role === "primary"; });
+  if (!primary.length) return "No primary beneficiary named — only contingents.";
+  var total = primaryShare(list);
+  if (total === 0) return "No shares entered yet.";
+  if (Math.abs(total - 100) < 0.01) return "";
+  return "Primary shares total " + (Math.round(total * 100) / 100) + "%, not 100% — confirm against the policy.";
+}
+
 var STATUS = ["inforce", "lapsed", "verify"];
 var PLANS  = ["traditional", "vul"];
-var BENEF  = ["revocable", "irrevocable", "unknown"];
 
 // Policies are recorded, not computed. The analysis sizes the cover a plan
 // NEEDS; what the client already holds is a fact about the estate, and the two
@@ -603,11 +669,10 @@ function buildPolicies(rows){
       status:    pick(r.status, STATUS, "verify"),
       coverage:  money(r.coverage),
       plan:      pick(r.plan, PLANS, "traditional"),
-      beneficiary: String(r.beneficiary || "").trim(),
-      revocability: pick(r.revocability, BENEF, "unknown")
+      beneficiaries: buildBeneficiaries(r.beneficiaries)
     };
   }).filter(function(p){
-    return p.insurer !== "" || p.product !== "" || p.coverage > 0;   // drop untouched cards
+    return p.insurer !== "" || p.product !== "" || p.coverage > 0 || p.beneficiaries.length;
   });
 }
 
@@ -680,16 +745,46 @@ function policyCard(){
       '<div class="f"><label>Insurance coverage &#8369;</label><input type="text" data-f="coverage" class="num" placeholder="0"></div>' +
       '<div class="f"><label>Type</label>' +
         '<select data-f="plan"><option value="traditional">Traditional</option><option value="vul">VUL</option></select></div>' +
-      '<div class="f"><label>Beneficiary designation</label>' +
-        '<select data-f="revocability">' +
-          '<option value="unknown">Not yet confirmed</option>' +
-          '<option value="revocable">Revocable</option>' +
-          '<option value="irrevocable">Irrevocable &mdash; outside the estate</option>' +
-        '</select></div>' +
+      '<div class="f"><label>Policy number</label><input type="text" data-f="policyno" placeholder="If known"></div>' +
     '</div>' +
-    '<div class="f" style="margin-top:13px"><label>Name of beneficiary</label>' +
-      '<input type="text" data-f="beneficiary" placeholder="Full name, and the relationship"></div>';
+    '<div class="bens">' +
+      '<span class="lbl">Beneficiaries</span>' +
+      '<span class="hint">Each designation stands on its own &mdash; one share can be irrevocable while another is not.</span>' +
+      '<div class="rowhead ben"><span>Name</span><span>Relationship</span><span>Share %</span><span>Primary or contingent</span><span>Designation</span><span></span></div>' +
+      '<div class="benrows"></div>' +
+      '<button class="add no-print" type="button" data-addben>+ Add beneficiary</button>' +
+      '<span class="said benshare"></span>' +
+    '</div>';
   return d;
+}
+
+function benRow(){
+  var d = document.createElement("div");
+  d.className = "row ben";
+  d.innerHTML =
+    '<input type="text" data-b="name" aria-label="Beneficiary name">' +
+    '<input type="text" data-b="relationship" aria-label="Relationship" placeholder="Spouse, child">' +
+    '<input type="text" data-b="share" class="num" aria-label="Share" placeholder="100">' +
+    '<select data-b="role"><option value="primary">Primary</option><option value="contingent">Contingent</option></select>' +
+    '<select data-b="revocability">' +
+      '<option value="unknown">Not confirmed</option>' +
+      '<option value="revocable">Revocable</option>' +
+      '<option value="irrevocable">Irrevocable</option>' +
+    '</select>' +
+    '<button class="kill no-print" type="button" title="Remove">&times;</button>';
+  return d;
+}
+
+function readBens(card){
+  return Array.prototype.map.call(card.querySelectorAll(".benrows .row"), function(row){
+    var o = {};
+    row.querySelectorAll("[data-b]").forEach(function(el){ o[el.dataset.b] = el.value; });
+    return o;
+  });
+}
+
+function refreshShare(card){
+  card.querySelector(".benshare").textContent = shareNote(buildBeneficiaries(readBens(card)));
 }
 
 function numberPolicies(){
@@ -701,7 +796,13 @@ function numberPolicies(){
 
 function add(key){
   var host = $("ff-" + key);
-  if (key === "policies"){ host.appendChild(policyCard()); numberPolicies(); return; }
+  if (key === "policies"){
+    var card = policyCard();
+    host.appendChild(card);
+    card.querySelector(".benrows").appendChild(benRow());
+    numberPolicies();
+    return;
+  }
   host.appendChild(key === "props" ? assetRow() : personRow(key));
 }
 
@@ -735,6 +836,7 @@ function readPolicies(){
   return Array.prototype.map.call($("ff-policies").querySelectorAll(".policy"), function(card){
     var o = {};
     card.querySelectorAll("[data-f]").forEach(function(el){ o[el.dataset.f] = el.value; });
+    o.beneficiaries = readBens(card);
     return o;
   });
 }
@@ -785,6 +887,26 @@ function wireFactfind(){
   });
 
   $("ff-policies").addEventListener("click", function(e){
+    var addBen = e.target.closest("[data-addben]");
+    if (addBen){
+      var host = addBen.closest(".policy").querySelector(".benrows");
+      host.appendChild(benRow());
+      host.querySelectorAll('.row [data-b="name"]')[host.querySelectorAll(".row").length - 1].focus();
+      refreshShare(addBen.closest(".policy"));
+      return;
+    }
+
+    var benKill = e.target.closest(".benrows .kill");
+    if (benKill){
+      var pcard = benKill.closest(".policy"), rows = pcard.querySelectorAll(".benrows .row");
+      if (rows.length > 1) benKill.closest(".row").remove();
+      else benKill.closest(".row").querySelectorAll("input,select").forEach(function(el){
+        if (el.tagName === "SELECT") el.selectedIndex = 0; else el.value = "";
+      });
+      refreshShare(pcard);
+      return;
+    }
+
     var b = e.target.closest(".kill"); if (!b) return;
     var card = b.closest(".policy");
     if ($("ff-policies").querySelectorAll(".policy").length > 1) card.remove();
@@ -797,7 +919,9 @@ function wireFactfind(){
   // "Same" resolves to the owner, in either order — the advisor may type the
   // shorthand before the name it stands for.
   $("ff-policies").addEventListener("input", function(e){
-    var el = e.target; if (!el.dataset || !el.dataset.f) return;
+    var el = e.target;
+    if (el.dataset && el.dataset.b){ refreshShare(el.closest(".policy")); return; }
+    if (!el.dataset || !el.dataset.f) return;
     var card = el.closest(".policy");
     var ownerEl   = card.querySelector('[data-f="owner"]');
     var insuredEl = card.querySelector('[data-f="insured"]');
@@ -818,6 +942,7 @@ function wireFactfind(){
   });
 
   $("ff-policies").addEventListener("change", function(e){
+    if (e.target.dataset && e.target.dataset.b){ refreshShare(e.target.closest(".policy")); return; }
     if (!e.target.dataset || e.target.dataset.f !== "inception") return;
     var card = e.target.closest(".policy");
     card.querySelector('[data-f="duration"]').value = policyDuration(e.target.value);

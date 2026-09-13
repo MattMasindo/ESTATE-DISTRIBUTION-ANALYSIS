@@ -8,7 +8,8 @@ import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 
 import { buildIntake, applyIntake, commafyInput, caretAfterDigits,
-         buildPolicies, resolveInsured, policyDuration } from "../src/intake.js";
+         buildPolicies, resolveInsured, policyDuration,
+         buildBeneficiaries, primaryShare, irrevocableShare, shareNote } from "../src/intake.js";
 
 const sheet = (over = {}) => ({
   client: "Juan Dela Cruz",
@@ -204,17 +205,17 @@ describe("existing life insurance", () => {
     const [p] = buildPolicies([{ insurer: "Sun Life", product: "Maxilink Prime", owner: "Ramon",
                                  insured: "same", inception: "2019-06-15", status: "inforce",
                                  coverage: "₱5,000,000", plan: "vul",
-                                 beneficiary: "Elena", revocability: "irrevocable" }]);
+                                 beneficiaries: [{ name: "Elena", share: "100", revocability: "irrevocable" }] }]);
     assert.equal(p.insured, "Ramon");
     assert.equal(p.coverage, 5_000_000);
     assert.equal(p.plan, "vul");
-    assert.equal(p.revocability, "irrevocable");
+    assert.equal(p.beneficiaries[0].revocability, "irrevocable");
   });
 
   test("an unverified policy stays unverified — nothing is assumed in force", () => {
     const [p] = buildPolicies([{ insurer: "Sun Life", status: "" }]);
     assert.equal(p.status, "verify");
-    assert.equal(p.revocability, "unknown");
+    assert.deepEqual(p.beneficiaries, []);
   });
 
   test("untouched cards are dropped, but a named policy with no figure is kept", () => {
@@ -225,5 +226,63 @@ describe("existing life insurance", () => {
     ]);
     assert.equal(out.length, 2);
     assert.equal(out[1].product, "An old plan nobody can find");
+  });
+});
+
+describe("a policy can name more than one beneficiary", () => {
+  const three = () => buildBeneficiaries([
+    { name: "Elena", relationship: "Spouse", share: "50", role: "primary", revocability: "irrevocable" },
+    { name: "Paolo", relationship: "Son", share: "50", role: "primary", revocability: "revocable" },
+    { name: "Isabel", relationship: "Daughter", share: "100", role: "contingent", revocability: "revocable" }
+  ]);
+
+  test("each designation stands on its own", () => {
+    const b = three();
+    assert.equal(b.length, 3);
+    assert.equal(b[0].revocability, "irrevocable");
+    assert.equal(b[1].revocability, "revocable");   // same policy, different designation
+  });
+
+  test("primary shares are totalled; contingents are not", () => {
+    assert.equal(primaryShare(three()), 100);
+  });
+
+  test("only irrevocable primary shares sit outside the estate", () => {
+    assert.equal(irrevocableShare(three()), 50);
+  });
+
+  test("a contingent irrevocable share is not counted — it takes nothing yet", () => {
+    const b = buildBeneficiaries([{ name: "X", share: "100", role: "contingent", revocability: "irrevocable" }]);
+    assert.equal(irrevocableShare(b), 0);
+  });
+
+  test("shares that do not total 100 are flagged rather than corrected", () => {
+    const b = buildBeneficiaries([{ name: "Elena", share: "60" }, { name: "Paolo", share: "30" }]);
+    assert.match(shareNote(b), /90%, not 100%/);
+  });
+
+  test("shares that total 100 say nothing at all", () => {
+    assert.equal(shareNote(three()), "");
+  });
+
+  test("contingents with no primary is its own problem, and named as one", () => {
+    const b = buildBeneficiaries([{ name: "Isabel", share: "100", role: "contingent" }]);
+    assert.match(shareNote(b), /No primary beneficiary/);
+  });
+
+  test("a share above 100 is clamped rather than carried", () => {
+    const b = buildBeneficiaries([{ name: "X", share: "150" }]);
+    assert.equal(b[0].share, 100);
+  });
+
+  test("blank beneficiary lines are dropped", () => {
+    const b = buildBeneficiaries([{ name: "Elena", share: "100" }, { name: "", share: "" }, {}]);
+    assert.equal(b.length, 1);
+  });
+
+  test("a policy with only beneficiaries filled in is still a policy", () => {
+    const out = buildPolicies([{ insurer: "", coverage: "", beneficiaries: [{ name: "Elena", share: "100" }] }]);
+    assert.equal(out.length, 1);
+    assert.equal(out[0].beneficiaries[0].name, "Elena");
   });
 });

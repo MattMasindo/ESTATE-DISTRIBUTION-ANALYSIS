@@ -1,8 +1,8 @@
 // The fact-find sheet's behaviour: repeating rows, the hand-off, and printing.
 // The mapping itself lives in intake.js so it can be tested without a DOM.
 
-import { buildIntake, buildPolicies, stashIntake, commafyInput, caretAfterDigits,
-         resolveInsured, policyDuration } from "./intake.js";
+import { buildIntake, buildPolicies, buildBeneficiaries, stashIntake, commafyInput,
+         caretAfterDigits, resolveInsured, policyDuration, shareNote } from "./intake.js";
 
 var $ = function(id){ return document.getElementById(id); };
 
@@ -68,16 +68,46 @@ function policyCard(){
       '<div class="f"><label>Insurance coverage &#8369;</label><input type="text" data-f="coverage" class="num" placeholder="0"></div>' +
       '<div class="f"><label>Type</label>' +
         '<select data-f="plan"><option value="traditional">Traditional</option><option value="vul">VUL</option></select></div>' +
-      '<div class="f"><label>Beneficiary designation</label>' +
-        '<select data-f="revocability">' +
-          '<option value="unknown">Not yet confirmed</option>' +
-          '<option value="revocable">Revocable</option>' +
-          '<option value="irrevocable">Irrevocable &mdash; outside the estate</option>' +
-        '</select></div>' +
+      '<div class="f"><label>Policy number</label><input type="text" data-f="policyno" placeholder="If known"></div>' +
     '</div>' +
-    '<div class="f" style="margin-top:13px"><label>Name of beneficiary</label>' +
-      '<input type="text" data-f="beneficiary" placeholder="Full name, and the relationship"></div>';
+    '<div class="bens">' +
+      '<span class="lbl">Beneficiaries</span>' +
+      '<span class="hint">Each designation stands on its own &mdash; one share can be irrevocable while another is not.</span>' +
+      '<div class="rowhead ben"><span>Name</span><span>Relationship</span><span>Share %</span><span>Primary or contingent</span><span>Designation</span><span></span></div>' +
+      '<div class="benrows"></div>' +
+      '<button class="add no-print" type="button" data-addben>+ Add beneficiary</button>' +
+      '<span class="said benshare"></span>' +
+    '</div>';
   return d;
+}
+
+function benRow(){
+  var d = document.createElement("div");
+  d.className = "row ben";
+  d.innerHTML =
+    '<input type="text" data-b="name" aria-label="Beneficiary name">' +
+    '<input type="text" data-b="relationship" aria-label="Relationship" placeholder="Spouse, child">' +
+    '<input type="text" data-b="share" class="num" aria-label="Share" placeholder="100">' +
+    '<select data-b="role"><option value="primary">Primary</option><option value="contingent">Contingent</option></select>' +
+    '<select data-b="revocability">' +
+      '<option value="unknown">Not confirmed</option>' +
+      '<option value="revocable">Revocable</option>' +
+      '<option value="irrevocable">Irrevocable</option>' +
+    '</select>' +
+    '<button class="kill no-print" type="button" title="Remove">&times;</button>';
+  return d;
+}
+
+function readBens(card){
+  return Array.prototype.map.call(card.querySelectorAll(".benrows .row"), function(row){
+    var o = {};
+    row.querySelectorAll("[data-b]").forEach(function(el){ o[el.dataset.b] = el.value; });
+    return o;
+  });
+}
+
+function refreshShare(card){
+  card.querySelector(".benshare").textContent = shareNote(buildBeneficiaries(readBens(card)));
 }
 
 function numberPolicies(){
@@ -89,7 +119,13 @@ function numberPolicies(){
 
 function add(key){
   var host = $("ff-" + key);
-  if (key === "policies"){ host.appendChild(policyCard()); numberPolicies(); return; }
+  if (key === "policies"){
+    var card = policyCard();
+    host.appendChild(card);
+    card.querySelector(".benrows").appendChild(benRow());
+    numberPolicies();
+    return;
+  }
   host.appendChild(key === "props" ? assetRow() : personRow(key));
 }
 
@@ -123,6 +159,7 @@ function readPolicies(){
   return Array.prototype.map.call($("ff-policies").querySelectorAll(".policy"), function(card){
     var o = {};
     card.querySelectorAll("[data-f]").forEach(function(el){ o[el.dataset.f] = el.value; });
+    o.beneficiaries = readBens(card);
     return o;
   });
 }
@@ -173,6 +210,26 @@ export function wireFactfind(){
   });
 
   $("ff-policies").addEventListener("click", function(e){
+    var addBen = e.target.closest("[data-addben]");
+    if (addBen){
+      var host = addBen.closest(".policy").querySelector(".benrows");
+      host.appendChild(benRow());
+      host.querySelectorAll('.row [data-b="name"]')[host.querySelectorAll(".row").length - 1].focus();
+      refreshShare(addBen.closest(".policy"));
+      return;
+    }
+
+    var benKill = e.target.closest(".benrows .kill");
+    if (benKill){
+      var pcard = benKill.closest(".policy"), rows = pcard.querySelectorAll(".benrows .row");
+      if (rows.length > 1) benKill.closest(".row").remove();
+      else benKill.closest(".row").querySelectorAll("input,select").forEach(function(el){
+        if (el.tagName === "SELECT") el.selectedIndex = 0; else el.value = "";
+      });
+      refreshShare(pcard);
+      return;
+    }
+
     var b = e.target.closest(".kill"); if (!b) return;
     var card = b.closest(".policy");
     if ($("ff-policies").querySelectorAll(".policy").length > 1) card.remove();
@@ -185,7 +242,9 @@ export function wireFactfind(){
   // "Same" resolves to the owner, in either order — the advisor may type the
   // shorthand before the name it stands for.
   $("ff-policies").addEventListener("input", function(e){
-    var el = e.target; if (!el.dataset || !el.dataset.f) return;
+    var el = e.target;
+    if (el.dataset && el.dataset.b){ refreshShare(el.closest(".policy")); return; }
+    if (!el.dataset || !el.dataset.f) return;
     var card = el.closest(".policy");
     var ownerEl   = card.querySelector('[data-f="owner"]');
     var insuredEl = card.querySelector('[data-f="insured"]');
@@ -206,6 +265,7 @@ export function wireFactfind(){
   });
 
   $("ff-policies").addEventListener("change", function(e){
+    if (e.target.dataset && e.target.dataset.b){ refreshShare(e.target.closest(".policy")); return; }
     if (!e.target.dataset || e.target.dataset.f !== "inception") return;
     var card = e.target.closest(".policy");
     card.querySelector('[data-f="duration"]').value = policyDuration(e.target.value);
