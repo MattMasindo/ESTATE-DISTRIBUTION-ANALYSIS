@@ -59,6 +59,8 @@
   --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 28px -18px rgba(0,0,0,.9);
 }
 
+/* ===== TOKENS END ===== */
+
 *{box-sizing:border-box}
 body{
   margin:0;background:var(--ground);color:var(--ink);
@@ -120,8 +122,8 @@ input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid 
 .lbl{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-2);font-weight:600}
 .hint{font-size:11.5px;color:var(--ink-3);line-height:1.4}
 
-button.ghost{font:inherit;font-size:12px;font-weight:500;padding:6px 11px;border-radius:4px;cursor:pointer;background:var(--surface);border:1px solid var(--line-strong);color:var(--ink-2)}
-button.ghost:hover{border-color:var(--accent);color:var(--accent)}
+.ghost{display:inline-flex;align-items:center;text-decoration:none;font:inherit;font-size:12px;font-weight:500;padding:6px 11px;border-radius:4px;cursor:pointer;background:var(--surface);border:1px solid var(--line-strong);color:var(--ink-2)}
+.ghost:hover{border-color:var(--accent);color:var(--accent)}
 button.add{font:inherit;font-size:12px;font-weight:500;padding:5px 10px;border-radius:4px;cursor:pointer;background:var(--accent-soft);border:1px solid transparent;color:var(--accent)}
 button.add:hover{border-color:var(--accent)}
 button.kill{border:0;background:transparent;color:var(--ink-3);cursor:pointer;font:inherit;font-size:16px;line-height:1;width:28px;height:30px;border-radius:4px;flex:none}
@@ -439,7 +441,7 @@ footer{font-size:11.5px;color:var(--ink-3);line-height:1.5;border-top:1px solid 
   .appbar{padding:0 0 8px;border-bottom-width:1.5px}
   .panel{box-shadow:none;border-color:#c9cdd5;break-inside:avoid}
   .no-print{display:none !important}
-  button.kill,button.add,button.ghost{display:none !important}
+  button.kill,button.add,.ghost{display:none !important}
 
   /* form controls read as plain text on paper */
   input[type=text],input[type=date],select,.prep input{
@@ -505,7 +507,7 @@ footer{font-size:11.5px;color:var(--ink-3);line-height:1.5;border-top:1px solid 
 
 /* ---------- header actions ---------- */
 .actions{display:flex;gap:8px;flex-wrap:wrap}
-button.ghost.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+.ghost.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
 button.ghost.primary:hover{filter:brightness(1.1);color:#fff}
 button.ghost:disabled{opacity:.6;cursor:default}
 
@@ -523,7 +525,7 @@ body.exporting .wrap{padding:0;max-width:none;gap:10px}
 body.exporting .appbar{padding:0 0 8px;border-bottom-width:1.5px}
 body.exporting .panel{box-shadow:none;border-color:#c9cdd5;break-inside:avoid}
 body.exporting .no-print{display:none !important}
-body.exporting button.kill,body.exporting button.add,body.exporting button.ghost{display:none !important}
+body.exporting button.kill,body.exporting button.add,body.exporting .ghost{display:none !important}
 body.exporting /* form controls read as plain text on paper */
   input[type=text],body.exporting input[type=date],body.exporting select,body.exporting .prep input{
     border-color:transparent !important;background:transparent !important;
@@ -593,7 +595,7 @@ body.exporting .sched.no-spouse .ptot{grid-template-columns:2fr 1fr 20px}
         <input class="ptitle" id="in-preptitle" value="Certified Trust and Estate Planner" aria-label="Title">
         <span class="pdate" id="prep-date"></span>
       </div>
-      <div class="actions no-print"><button class="ghost primary" id="btn-pdf" type="button">Download PDF</button><button class="ghost" id="btn-print" type="button">Print</button></div>
+      <div class="actions no-print"><a class="ghost" href="factfind.html">Fact-find sheet</a><button class="ghost primary" id="btn-pdf" type="button">Download PDF</button><button class="ghost" id="btn-print" type="button">Print</button></div>
     </div>
   </div>
 </header>
@@ -1022,6 +1024,118 @@ var heirName = function(key, i){
   return key === "lc" ? "Legitimate child " + (i+1) : key === "ilc" ? "Illegitimate child " + (i+1) : "Parent " + (i+1);
 };
 var ROLE = { lc:"Legitimate child", ilc:"Illegitimate child", lp:"Parent", ss:"Spouse" };
+
+// ---------- src/intake.js ----------
+// The hand-off between the fact-find sheet and the calculator.
+//
+// The sheet is filled in front of the client; the calculator is run from it.
+// Rather than re-typing the meeting into the app, the sheet writes a partial
+// scenario here and the calculator reads it once on boot.
+//
+// Transport is sessionStorage, not the URL. Client names, property values and
+// family structure have no business in a browser history entry, a referrer
+// header or a shared link, and sessionStorage dies with the tab.
+//
+// buildIntake is pure and is where every coercion lives, so the mapping can be
+// tested in Node without a DOM. See test/intake.test.mjs.
+
+const INTAKE_KEY = "eda:intake";
+
+const OWNERS = ["client", "spouse", "both"];
+const ACQS   = ["before", "onerous", "gratuitous", "fruits"];
+const LIQS   = ["realty", "liquid"];
+const PRENUPS= ["none", "cpg", "acp", "sep"];
+
+function pick(v, allowed, fallback){
+  return allowed.indexOf(v) >= 0 ? v : fallback;
+}
+
+// "₱1,250,000" and "1250000" both mean the same thing on a handwritten sheet.
+function money(v){
+  if (typeof v === "number") return isFinite(v) && v > 0 ? v : 0;
+  var n = parseFloat(String(v == null ? "" : v).replace(/[^0-9.]/g, ""));
+  return isFinite(n) && n > 0 ? n : 0;
+}
+
+function isoDate(v){
+  return /^\d{4}-\d{2}-\d{2}$/.test(String(v || "")) ? v : "";
+}
+
+function people(rows, cap){
+  var out = (rows || [])
+    .map(function(r){ return { name: String((r && r.name) || "").trim(), dob: isoDate(r && r.dob) }; })
+    .filter(function(r){ return r.name !== ""; });          // a blank line is not an heir
+  return cap ? out.slice(0, cap) : out;
+}
+
+function buildIntake(f){
+  f = f || {};
+  var married = !!f.married;
+
+  var props = (f.props || []).map(function(p){
+    return {
+      name:  String((p && p.name)  || "").trim(),
+      note:  String((p && p.note)  || "").trim(),
+      value: money(p && p.value),
+      owner: pick(p && p.owner, OWNERS, "client"),
+      acq:   pick(p && p.acq,   ACQS,   "onerous"),
+      liq:   pick(p && p.liq,   LIQS,   "realty"),
+      to:    "residue"        // bequests are a planning decision, not a fact-find one
+    };
+  }).filter(function(p){
+    return p.name !== "" || p.value > 0;                    // drop the empty ruled lines
+  }).map(function(p){
+    // An unmarried client has no conjugal estate. A sheet that says otherwise is
+    // a ticked box, not a fact, so it is corrected here rather than carried in.
+    if (!married && p.owner !== "client") p.owner = "client";
+    return p;
+  });
+
+  var out = {
+    client:    String(f.client || "").trim(),
+    clientDob: isoDate(f.clientDob),
+    spouse:    married,
+    lc:  people(f.lc),
+    ilc: people(f.ilc),
+    lp:  people(f.lp, 2),                                   // the engine recognises two parents
+    props: props,
+    debts:  money(f.debts),
+    debtOn: married ? pick(f.debtOn, ["conjugal", "exclusive"], "conjugal") : "exclusive"
+  };
+
+  if (married){
+    out.spouseName = String(f.spouseName || "").trim();
+    out.spouseDob  = isoDate(f.spouseDob);
+    out.date       = isoDate(f.marriageDate);
+    out.prenup     = pick(f.prenup, PRENUPS, "none");
+  }
+  return out;
+}
+
+// Merge a stored intake into the live scenario. Only keys the sheet actually
+// carried are touched; everything else keeps its default.
+function applyIntake(S, raw){
+  if (!S || !raw) return false;
+  Object.keys(raw).forEach(function(k){
+    if (raw[k] !== undefined) S[k] = raw[k];
+  });
+  return true;
+}
+
+function stashIntake(payload){
+  try { sessionStorage.setItem(INTAKE_KEY, JSON.stringify(payload)); return true; }
+  catch (e) { return false; }
+}
+
+// Read once and burn it — a refresh should not silently re-import a stale meeting.
+function takeIntake(){
+  try {
+    var raw = sessionStorage.getItem(INTAKE_KEY);
+    if (!raw) return null;
+    sessionStorage.removeItem(INTAKE_KEY);
+    return JSON.parse(raw);
+  } catch (e) { return null; }
+}
 
 // ---------- src/engine/regime.js ----------
 // Generated from the single-file prototype. Behaviour is identical; see test/engine.test.mjs.
@@ -2601,6 +2715,7 @@ renderPropRows();
 render();
 }
 
+applyIntake(S, takeIntake());
 wire();
 initCloud();
 })();

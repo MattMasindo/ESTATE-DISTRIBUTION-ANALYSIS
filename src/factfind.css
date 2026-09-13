@@ -1,0 +1,136 @@
+/* The fact-find sheet. Design tokens are prepended from styles.css by build.mjs,
+   so this file only describes the instrument itself.
+
+   One page, two uses. On screen it is a form the advisor fills in and hands off
+   to the calculator. Printed with the fields empty it is the blank sheet you
+   carry into the meeting — which is why every field is a ruled line rather than
+   a box, and why nothing here depends on colour to be legible. */
+
+*{box-sizing:border-box}
+body{
+  margin:0;background:var(--ground);color:var(--ink);
+  font-family:var(--font-ui);font-size:14px;line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ---------- masthead ---------- */
+.appbar{
+  background:var(--surface);border-bottom:2px solid var(--ink);
+  padding-top:calc(env(safe-area-inset-top, 0px) + 16px);padding-bottom:14px;
+  padding-inline:max(16px, env(safe-area-inset-left,0px)) max(16px, env(safe-area-inset-right,0px));
+}
+.masthead{max-width:900px;margin:0 auto;display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:14px 28px}
+.masthead h1{font-weight:600;font-size:clamp(22px,4vw,30px);line-height:1.1;margin:0;letter-spacing:-.022em}
+.masthead .sub{font-size:12px;color:var(--ink-2);max-width:52ch;margin-top:6px}
+.eyebrow{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
+
+.wrap{
+  max-width:900px;margin:0 auto;display:flex;flex-direction:column;gap:18px;
+  padding-inline:max(16px, env(safe-area-inset-left,0px)) max(16px, env(safe-area-inset-right,0px));
+  padding-block:20px calc(env(safe-area-inset-bottom,0px) + 56px);
+}
+
+/* ---------- panels ---------- */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px 20px 20px}
+.panel-head{display:flex;align-items:baseline;justify-content:space-between;gap:14px;border-bottom:1px solid var(--line);padding-bottom:9px;margin-bottom:15px}
+.panel-head h2{margin:0;font-size:15px;font-weight:650;letter-spacing:-.01em}
+.panel-head .n{font-family:var(--font-num);font-size:11px;color:var(--ink-3);font-weight:600}
+.note{font-size:12px;color:var(--ink-2);margin:0 0 13px;max-width:70ch}
+.note strong{color:var(--ink);font-weight:600}
+
+/* ---------- fields ---------- */
+.grid{display:grid;gap:13px 18px}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.g4{grid-template-columns:2fr 1.4fr 1fr 1fr}
+@media (max-width:720px){.g2,.g3,.g4{grid-template-columns:1fr}}
+
+.f{display:flex;flex-direction:column;gap:4px;min-width:0}
+.f > label,.lbl{font-size:11px;font-weight:600;color:var(--ink-2);letter-spacing:.01em}
+.hint{font-size:11px;color:var(--ink-3);line-height:1.4}
+
+input[type=text],input[type=date],input[type=number],select,textarea{
+  font:inherit;color:var(--ink);background:transparent;
+  border:0;border-bottom:1px solid var(--line-strong);border-radius:0;
+  padding:5px 2px;width:100%;min-width:0;
+}
+textarea{border:1px solid var(--line-strong);border-radius:var(--radius);padding:8px;resize:vertical;min-height:66px;line-height:1.9}
+select{border-bottom:1px solid var(--line-strong);cursor:pointer}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:2px;border-bottom-color:transparent}
+input::placeholder,textarea::placeholder{color:var(--ink-3)}
+.num{font-family:var(--font-num);text-align:right}
+
+.check{display:flex;align-items:center;gap:8px;font-size:13px}
+.check input{width:15px;height:15px;flex:none;accent-color:var(--accent)}
+
+/* ---------- repeating rows ---------- */
+.rows{display:flex;flex-direction:column;gap:9px}
+.row{display:grid;gap:9px 12px;align-items:end}
+.row.person{grid-template-columns:2fr 1.1fr 26px}
+.row.asset{grid-template-columns:1.5fr 1.3fr 1fr 1fr 1fr 1fr 26px}
+@media (max-width:860px){.row.asset{grid-template-columns:1fr 1fr;}.row.asset .kill{grid-column:2;justify-self:end}}
+@media (max-width:520px){.row.person{grid-template-columns:1fr 1fr}.row.person .kill{grid-column:2;justify-self:end}}
+.rowhead{display:grid;gap:9px 12px;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:600;padding-bottom:2px}
+.rowhead.person{grid-template-columns:2fr 1.1fr 26px}
+.rowhead.asset{grid-template-columns:1.5fr 1.3fr 1fr 1fr 1fr 1fr 26px}
+@media (max-width:860px){.rowhead{display:none}}
+.kill{border:0;background:transparent;color:var(--ink-3);cursor:pointer;font-size:17px;line-height:1;padding:4px;border-radius:4px}
+.kill:hover{color:var(--seal);background:var(--seal-soft)}
+
+button.add{
+  align-self:flex-start;margin-top:9px;font:inherit;font-size:12px;font-weight:600;
+  background:transparent;color:var(--accent);border:1px dashed var(--line-strong);
+  border-radius:var(--radius);padding:6px 12px;cursor:pointer;
+}
+button.add:hover{border-color:var(--accent);background:var(--accent-soft)}
+
+/* ---------- the question that gets skipped ---------- */
+.ask{border-left:3px solid var(--accent);background:var(--accent-soft);padding:12px 15px;border-radius:0 var(--radius) var(--radius) 0;margin-bottom:14px}
+.ask q{font-size:14px;font-style:italic;color:var(--ink);quotes:'"' '"'}
+.ask .why{font-size:11.5px;color:var(--ink-2);margin-top:6px}
+
+/* ---------- checklists ---------- */
+.ticks{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px 18px}
+
+/* ---------- actions ---------- */
+.actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.btn{font:inherit;font-size:13px;font-weight:600;padding:9px 16px;border-radius:var(--radius);border:1px solid var(--line-strong);background:var(--surface);color:var(--ink);cursor:pointer}
+.btn:hover{border-color:var(--ink-3)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{filter:brightness(1.08)}
+.said{font-size:12px;color:var(--ink-2)}
+.said.bad{color:var(--seal);font-weight:600}
+
+.foot{font-size:11px;color:var(--ink-3);text-align:center;padding-top:2px}
+.foot a{color:var(--ink-2)}
+
+/* ---------- print: this is the deliverable ---------- */
+@media print{
+  @page{size:A4;margin:13mm 12mm}
+  :root{color-scheme:light}
+  body{background:#fff;color:#000;font-size:10.5pt}
+  .no-print{display:none !important}
+  .appbar{border-bottom:1.5pt solid #000;padding:0 0 7pt;background:none}
+  .masthead{max-width:none}
+  .masthead h1{font-size:17pt}
+  .wrap{max-width:none;gap:11pt;padding:0}
+  .panel{border:0;box-shadow:none;padding:0;break-inside:avoid;page-break-inside:avoid}
+  .panel-head{border-bottom:.6pt solid #000;margin-bottom:8pt;padding-bottom:3pt}
+  .panel-head h2{font-size:11.5pt}
+  .note{font-size:8.5pt;margin-bottom:8pt}
+  .hint{font-size:8pt}
+  input[type=text],input[type=date],input[type=number],select{
+    border-bottom:.5pt solid #555;padding:2pt 1pt;font-size:10pt;
+    -webkit-appearance:none;appearance:none;background:none;
+  }
+  textarea{border:.5pt solid #555;min-height:52pt;font-size:10pt;
+    background-image:repeating-linear-gradient(transparent,transparent 15pt,#ccc 15pt,#ccc 15.5pt)}
+  .check input{width:10pt;height:10pt}
+  .ask{border-left:1.5pt solid #000;background:none;padding:5pt 9pt}
+  .ask q{font-size:10.5pt}
+  .rowhead{font-size:7.5pt;display:grid}
+  .row.asset,.rowhead.asset{grid-template-columns:1.5fr 1.3fr 1fr 1fr 1fr 1fr}
+  .row.person,.rowhead.person{grid-template-columns:2fr 1.1fr}
+  .kill{display:none}
+  .foot{border-top:.5pt solid #999;margin-top:8pt;padding-top:5pt;font-size:8pt}
+}

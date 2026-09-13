@@ -1,0 +1,657 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Estate Planning Fact-Find</title>
+<meta name="description" content="The client interview behind an estate distribution analysis — the marriage, the heirs, the asset schedule and the questions that get skipped.">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>%E2%9A%96%EF%B8%8F</text></svg>">
+<style>
+:root{
+  color-scheme: light;
+  --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-num: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  --ground:#F1F3F6; --surface:#FFFFFF; --surface-2:#F7F8FA;
+  --ink:#14171D; --ink-2:#5C6472; --ink-3:#8B93A1;
+  --line:#DCE0E7; --line-strong:#C3C9D3;
+  --accent:#0F3D73; --accent-soft:#E4ECF7;
+  --seal:#A81C2E; --seal-soft:#F7E6E8;
+  --s-lc:#2a78d6; --s-ss:#eb6834; --s-ilc:#1baf7a; --s-lp:#4a3aa7;
+  --s-free:#AEB4BF; --s-free-line:#8A919E;
+  --chip-shared:#E4ECF7; --chip-shared-ink:#0F3D73;
+  --chip-cli:#EDE9F8; --chip-cli-ink:#4a3aa7;
+  --chip-sp:#FCEAE1; --chip-sp-ink:#9A4517;
+  --liq:#184f95; --illiq:#86b6ef; --ins:#eda100;
+  --shadow:0 1px 2px rgba(16,22,34,.05), 0 8px 24px -16px rgba(16,22,34,.28);
+  --radius:6px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --ground:#0E1116; --surface:#171B22; --surface-2:#1E232B;
+    --ink:#E7EBF1; --ink-2:#9AA3B2; --ink-3:#6E7787;
+    --line:#2A313B; --line-strong:#3A424E;
+    --accent:#78AEEC; --accent-soft:#1B2733;
+    --seal:#E8737F; --seal-soft:#2B1A1E;
+    --s-lc:#3987e5; --s-ss:#d95926; --s-ilc:#199e70; --s-lp:#9085e9;
+    --s-free:#4E5560; --s-free-line:#767E8B;
+    --chip-shared:#1B2733; --chip-shared-ink:#78AEEC;
+    --chip-cli:#241F3A; --chip-cli-ink:#9085e9;
+    --chip-sp:#2E1D14; --chip-sp-ink:#E08A5E;
+    --liq:#3987e5; --illiq:#184f95; --ins:#c98500;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 28px -18px rgba(0,0,0,.9);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --ground:#0E1116; --surface:#171B22; --surface-2:#1E232B;
+  --ink:#E7EBF1; --ink-2:#9AA3B2; --ink-3:#6E7787;
+  --line:#2A313B; --line-strong:#3A424E;
+  --accent:#78AEEC; --accent-soft:#1B2733;
+  --seal:#E8737F; --seal-soft:#2B1A1E;
+  --s-lc:#3987e5; --s-ss:#d95926; --s-ilc:#199e70; --s-lp:#9085e9;
+  --s-free:#4E5560; --s-free-line:#767E8B;
+  --chip-shared:#1B2733; --chip-shared-ink:#78AEEC;
+  --chip-cli:#241F3A; --chip-cli-ink:#9085e9;
+  --chip-sp:#2E1D14; --chip-sp-ink:#E08A5E;
+  --liq:#3987e5; --illiq:#184f95; --ins:#c98500;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 28px -18px rgba(0,0,0,.9);
+}
+
+/* The fact-find sheet. Design tokens are prepended from styles.css by build.mjs,
+   so this file only describes the instrument itself.
+
+   One page, two uses. On screen it is a form the advisor fills in and hands off
+   to the calculator. Printed with the fields empty it is the blank sheet you
+   carry into the meeting — which is why every field is a ruled line rather than
+   a box, and why nothing here depends on colour to be legible. */
+
+*{box-sizing:border-box}
+body{
+  margin:0;background:var(--ground);color:var(--ink);
+  font-family:var(--font-ui);font-size:14px;line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ---------- masthead ---------- */
+.appbar{
+  background:var(--surface);border-bottom:2px solid var(--ink);
+  padding-top:calc(env(safe-area-inset-top, 0px) + 16px);padding-bottom:14px;
+  padding-inline:max(16px, env(safe-area-inset-left,0px)) max(16px, env(safe-area-inset-right,0px));
+}
+.masthead{max-width:900px;margin:0 auto;display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:14px 28px}
+.masthead h1{font-weight:600;font-size:clamp(22px,4vw,30px);line-height:1.1;margin:0;letter-spacing:-.022em}
+.masthead .sub{font-size:12px;color:var(--ink-2);max-width:52ch;margin-top:6px}
+.eyebrow{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
+
+.wrap{
+  max-width:900px;margin:0 auto;display:flex;flex-direction:column;gap:18px;
+  padding-inline:max(16px, env(safe-area-inset-left,0px)) max(16px, env(safe-area-inset-right,0px));
+  padding-block:20px calc(env(safe-area-inset-bottom,0px) + 56px);
+}
+
+/* ---------- panels ---------- */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px 20px 20px}
+.panel-head{display:flex;align-items:baseline;justify-content:space-between;gap:14px;border-bottom:1px solid var(--line);padding-bottom:9px;margin-bottom:15px}
+.panel-head h2{margin:0;font-size:15px;font-weight:650;letter-spacing:-.01em}
+.panel-head .n{font-family:var(--font-num);font-size:11px;color:var(--ink-3);font-weight:600}
+.note{font-size:12px;color:var(--ink-2);margin:0 0 13px;max-width:70ch}
+.note strong{color:var(--ink);font-weight:600}
+
+/* ---------- fields ---------- */
+.grid{display:grid;gap:13px 18px}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.g4{grid-template-columns:2fr 1.4fr 1fr 1fr}
+@media (max-width:720px){.g2,.g3,.g4{grid-template-columns:1fr}}
+
+.f{display:flex;flex-direction:column;gap:4px;min-width:0}
+.f > label,.lbl{font-size:11px;font-weight:600;color:var(--ink-2);letter-spacing:.01em}
+.hint{font-size:11px;color:var(--ink-3);line-height:1.4}
+
+input[type=text],input[type=date],input[type=number],select,textarea{
+  font:inherit;color:var(--ink);background:transparent;
+  border:0;border-bottom:1px solid var(--line-strong);border-radius:0;
+  padding:5px 2px;width:100%;min-width:0;
+}
+textarea{border:1px solid var(--line-strong);border-radius:var(--radius);padding:8px;resize:vertical;min-height:66px;line-height:1.9}
+select{border-bottom:1px solid var(--line-strong);cursor:pointer}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:2px;border-bottom-color:transparent}
+input::placeholder,textarea::placeholder{color:var(--ink-3)}
+.num{font-family:var(--font-num);text-align:right}
+
+.check{display:flex;align-items:center;gap:8px;font-size:13px}
+.check input{width:15px;height:15px;flex:none;accent-color:var(--accent)}
+
+/* ---------- repeating rows ---------- */
+.rows{display:flex;flex-direction:column;gap:9px}
+.row{display:grid;gap:9px 12px;align-items:end}
+.row.person{grid-template-columns:2fr 1.1fr 26px}
+.row.asset{grid-template-columns:1.5fr 1.3fr 1fr 1fr 1fr 1fr 26px}
+@media (max-width:860px){.row.asset{grid-template-columns:1fr 1fr;}.row.asset .kill{grid-column:2;justify-self:end}}
+@media (max-width:520px){.row.person{grid-template-columns:1fr 1fr}.row.person .kill{grid-column:2;justify-self:end}}
+.rowhead{display:grid;gap:9px 12px;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:600;padding-bottom:2px}
+.rowhead.person{grid-template-columns:2fr 1.1fr 26px}
+.rowhead.asset{grid-template-columns:1.5fr 1.3fr 1fr 1fr 1fr 1fr 26px}
+@media (max-width:860px){.rowhead{display:none}}
+.kill{border:0;background:transparent;color:var(--ink-3);cursor:pointer;font-size:17px;line-height:1;padding:4px;border-radius:4px}
+.kill:hover{color:var(--seal);background:var(--seal-soft)}
+
+button.add{
+  align-self:flex-start;margin-top:9px;font:inherit;font-size:12px;font-weight:600;
+  background:transparent;color:var(--accent);border:1px dashed var(--line-strong);
+  border-radius:var(--radius);padding:6px 12px;cursor:pointer;
+}
+button.add:hover{border-color:var(--accent);background:var(--accent-soft)}
+
+/* ---------- the question that gets skipped ---------- */
+.ask{border-left:3px solid var(--accent);background:var(--accent-soft);padding:12px 15px;border-radius:0 var(--radius) var(--radius) 0;margin-bottom:14px}
+.ask q{font-size:14px;font-style:italic;color:var(--ink);quotes:'"' '"'}
+.ask .why{font-size:11.5px;color:var(--ink-2);margin-top:6px}
+
+/* ---------- checklists ---------- */
+.ticks{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px 18px}
+
+/* ---------- actions ---------- */
+.actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.btn{font:inherit;font-size:13px;font-weight:600;padding:9px 16px;border-radius:var(--radius);border:1px solid var(--line-strong);background:var(--surface);color:var(--ink);cursor:pointer}
+.btn:hover{border-color:var(--ink-3)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{filter:brightness(1.08)}
+.said{font-size:12px;color:var(--ink-2)}
+.said.bad{color:var(--seal);font-weight:600}
+
+.foot{font-size:11px;color:var(--ink-3);text-align:center;padding-top:2px}
+.foot a{color:var(--ink-2)}
+
+/* ---------- print: this is the deliverable ---------- */
+@media print{
+  @page{size:A4;margin:13mm 12mm}
+  :root{color-scheme:light}
+  body{background:#fff;color:#000;font-size:10.5pt}
+  .no-print{display:none !important}
+  .appbar{border-bottom:1.5pt solid #000;padding:0 0 7pt;background:none}
+  .masthead{max-width:none}
+  .masthead h1{font-size:17pt}
+  .wrap{max-width:none;gap:11pt;padding:0}
+  .panel{border:0;box-shadow:none;padding:0;break-inside:avoid;page-break-inside:avoid}
+  .panel-head{border-bottom:.6pt solid #000;margin-bottom:8pt;padding-bottom:3pt}
+  .panel-head h2{font-size:11.5pt}
+  .note{font-size:8.5pt;margin-bottom:8pt}
+  .hint{font-size:8pt}
+  input[type=text],input[type=date],input[type=number],select{
+    border-bottom:.5pt solid #555;padding:2pt 1pt;font-size:10pt;
+    -webkit-appearance:none;appearance:none;background:none;
+  }
+  textarea{border:.5pt solid #555;min-height:52pt;font-size:10pt;
+    background-image:repeating-linear-gradient(transparent,transparent 15pt,#ccc 15pt,#ccc 15.5pt)}
+  .check input{width:10pt;height:10pt}
+  .ask{border-left:1.5pt solid #000;background:none;padding:5pt 9pt}
+  .ask q{font-size:10.5pt}
+  .rowhead{font-size:7.5pt;display:grid}
+  .row.asset,.rowhead.asset{grid-template-columns:1.5fr 1.3fr 1fr 1fr 1fr 1fr}
+  .row.person,.rowhead.person{grid-template-columns:2fr 1.1fr}
+  .kill{display:none}
+  .foot{border-top:.5pt solid #999;margin-top:8pt;padding-top:5pt;font-size:8pt}
+}
+</style>
+</head>
+<body>
+<header class="appbar">
+  <div class="masthead">
+    <div>
+      <div class="eyebrow">Battle River &middot; Confidential</div>
+      <h1>Estate Planning Fact-Find</h1>
+      <p class="sub no-print">Fill this in with the client, then hand it straight to the analysis &mdash; nothing is re-typed. Or print it blank and bring it to the meeting.</p>
+    </div>
+    <div class="prep">
+      <span class="eyebrow">Advisor</span>
+      <input type="text" id="ff-advisor" value="Matthew Isaiah Masindo" aria-label="Advisor">
+      <input type="date" id="ff-metdate" aria-label="Date of meeting">
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <section class="panel">
+    <div class="panel-head"><h2>The client</h2><span class="n">1</span></div>
+    <div class="grid g2">
+      <div class="f"><label for="ff-client">Full name</label><input type="text" id="ff-client" placeholder="Surname, first name"></div>
+      <div class="f"><label for="ff-clientdob">Date of birth</label><input type="date" id="ff-clientdob"></div>
+      <div class="f"><label for="ff-citizen">Citizenship</label><input type="text" id="ff-citizen" placeholder="Filipino"></div>
+      <div class="f"><label for="ff-residence">Country of residence</label><input type="text" id="ff-residence" placeholder="Philippines"></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head"><h2>The marriage</h2><span class="n">2</span></div>
+    <p class="note">The <strong>date of the marriage</strong> and the <strong>marriage settlement</strong> decide the property regime, and the regime decides what is even in the estate. Everything else on this sheet can be estimated and refined later. These two cannot be guessed &mdash; get them exact, and ask for the prenup itself rather than the client's memory of it.</p>
+    <div class="check no-print" style="margin-bottom:13px"><input type="checkbox" id="ff-married" checked><label for="ff-married">Married, spouse survives</label></div>
+    <div class="grid g2" id="ff-spousefields">
+      <div class="f"><label for="ff-spousename">Spouse full name</label><input type="text" id="ff-spousename"></div>
+      <div class="f"><label for="ff-spousedob">Spouse date of birth</label><input type="date" id="ff-spousedob"></div>
+      <div class="f">
+        <label for="ff-marriagedate">Date of marriage</label>
+        <input type="date" id="ff-marriagedate">
+        <span class="hint">Before 3 Aug 1988 &rarr; Conjugal Partnership. On or after &rarr; Absolute Community.</span>
+      </div>
+      <div class="f">
+        <label for="ff-prenup">Marriage settlement</label>
+        <select id="ff-prenup">
+          <option value="none">None &mdash; regime set by law</option>
+          <option value="cpg">Pre-nuptial &mdash; Conjugal Partnership of Gains</option>
+          <option value="acp">Pre-nuptial &mdash; Absolute Community of Property</option>
+          <option value="sep">Pre-nuptial &mdash; Complete Separation of Property</option>
+        </select>
+        <span class="hint">A prenup overrides the date.</span>
+      </div>
+    </div>
+    <div class="grid g2" style="margin-top:13px">
+      <div class="f"><label for="ff-prior">Prior marriage &mdash; how it ended</label><input type="text" id="ff-prior" placeholder="None / widowed / annulled"></div>
+      <div class="f"><label for="ff-priorkids">Children from it</label><input type="text" id="ff-priorkids" placeholder="None, or list them below"></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head"><h2>The heirs</h2><span class="n">3</span></div>
+    <p class="note">Legitimate, illegitimate and adopted are <strong>legal classifications, not judgments</strong> &mdash; ask flatly and the client will answer flatly. An adopted child counts as legitimate. Record the date of birth for every child: age decides whether extrajudicial settlement is open to the family at all.</p>
+
+    <span class="lbl">Legitimate and legally adopted children</span>
+    <div class="rowhead person" style="margin-top:7px"><span>Name</span><span>Date of birth</span><span></span></div>
+    <div class="rows" id="ff-lc"></div>
+    <button class="add no-print" type="button" data-add="lc">+ Add child</button>
+
+    <div style="height:16px"></div>
+    <span class="lbl">Illegitimate children</span>
+    <div class="rowhead person" style="margin-top:7px"><span>Name</span><span>Date of birth</span><span></span></div>
+    <div class="rows" id="ff-ilc"></div>
+    <button class="add no-print" type="button" data-add="ilc">+ Add child</button>
+
+    <div style="height:16px"></div>
+    <span class="lbl">Surviving parents of the client</span>
+    <span class="hint">Inherit only if there are no children at all.</span>
+    <div class="rowhead person" style="margin-top:7px"><span>Name</span><span>Date of birth</span><span></span></div>
+    <div class="rows" id="ff-lp"></div>
+    <button class="add no-print" type="button" data-add="lp">+ Add parent</button>
+
+    <div style="height:18px"></div>
+    <div class="f">
+      <label for="ff-dependents">Anyone financially dependent who is <em>not</em> listed above</label>
+      <input type="text" id="ff-dependents" placeholder="A partner, a sibling, a long-time helper — this is where a will earns its keep">
+    </div>
+    <div class="grid g2" style="margin-top:13px">
+      <div class="f"><label for="ff-predeceased">Any child who died leaving children of their own</label><input type="text" id="ff-predeceased" placeholder="None"></div>
+      <div class="f"><label for="ff-siblings">Siblings</label><input type="text" id="ff-siblings" placeholder="Only matters if no children and no parents"></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head"><h2>The assets</h2><span class="n">4</span></div>
+    <p class="note">For every asset: what it is, whose name holds it, and <strong>how it was acquired</strong>. That last column is what classifies the asset as community or exclusive &mdash; an advisor who skips it is guessing later. Values may be estimates; mark them <strong>(est.)</strong> in the description if so.</p>
+    <div class="rowhead asset"><span>Description</span><span>Detail</span><span>Value &#8369;</span><span>Held by</span><span>Acquired</span><span>Type</span><span></span></div>
+    <div class="rows" id="ff-props"></div>
+    <button class="add no-print" type="button" data-add="props">+ Add asset</button>
+
+    <div class="grid g3" style="margin-top:18px">
+      <div class="f"><label for="ff-debts">Total liabilities &#8369;</label><input type="text" id="ff-debts" class="num" placeholder="0"></div>
+      <div class="f">
+        <label for="ff-debton">Charged against</label>
+        <select id="ff-debton"><option value="conjugal">The community / conjugal estate</option><option value="exclusive">The client's exclusive property</option></select>
+      </div>
+      <div class="f"><label for="ff-insurance">Existing life insurance</label><input type="text" id="ff-insurance" placeholder="Insurer, face amount, beneficiary"></div>
+    </div>
+    <p class="hint" style="margin-top:9px">Insurance with an <strong>irrevocable</strong> beneficiary sits outside the estate entirely &mdash; note which it is, it changes the answer.</p>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head"><h2>Liquidity</h2><span class="n">5</span></div>
+    <div class="ask">
+      <q>Of everything we just listed, how much could your family turn into cash within twelve months &mdash; without selling anything at a loss?</q>
+      <div class="why">Ask it out loud, in these words. Estate tax is due one year from death. This number is the difference between a plan and a forced sale.</div>
+    </div>
+    <div class="grid g2">
+      <div class="f"><label for="ff-liquid">The client's own answer &#8369;</label><input type="text" id="ff-liquid" class="num" placeholder="0"></div>
+      <div class="f"><label for="ff-liquidnote">Where that cash would come from</label><input type="text" id="ff-liquidnote" placeholder="Deposits, funds, a buyer already in mind"></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head"><h2>Intent and friction</h2><span class="n">6</span></div>
+    <p class="note">This section is the one the calculator cannot compute. Write it in the client's own words.</p>
+    <div class="f" style="margin-bottom:13px">
+      <label for="ff-intent">Who should receive what</label>
+      <textarea id="ff-intent" placeholder="In their words — then show them the legal default beside it. The gap is the conversation."></textarea>
+    </div>
+    <div class="grid g2">
+      <div class="f"><label for="ff-advances">Already given a child something substantial</label><input type="text" id="ff-advances" placeholder="What, to whom, roughly when"></div>
+      <div class="f"><label for="ff-home">Family home &mdash; who lives there, who should keep it</label><input type="text" id="ff-home"></div>
+      <div class="f"><label for="ff-bizruns">Business &mdash; who runs it</label><input type="text" id="ff-bizruns"></div>
+      <div class="f"><label for="ff-bizowns">Business &mdash; who should own it</label><input type="text" id="ff-bizowns" placeholder="If these differ, say so"></div>
+    </div>
+    <div class="f" style="margin-top:13px">
+      <label for="ff-lumpsum">Anyone who should not receive a lump sum</label>
+      <input type="text" id="ff-lumpsum" placeholder="A minor, someone with special needs, someone who would mismanage it">
+    </div>
+    <div class="f" style="margin-top:13px">
+      <label for="ff-fight">&ldquo;What would cause a fight after you're gone?&rdquo;</label>
+      <textarea id="ff-fight" placeholder="Ask it. The answer is usually the plan."></textarea>
+    </div>
+    <div class="grid g2" style="margin-top:13px">
+      <div class="f"><label for="ff-will">Existing will &mdash; where is it</label><input type="text" id="ff-will" placeholder="None / notarised, held at…"></div>
+      <div class="f"><label for="ff-foreign">Foreign will or foreign property</label><input type="text" id="ff-foreign" placeholder="None"></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head"><h2>Documents to collect</h2><span class="n">7</span></div>
+    <div class="ticks">
+      <div class="check"><input type="checkbox" id="d1"><label for="d1">Marriage certificate</label></div>
+      <div class="check"><input type="checkbox" id="d2"><label for="d2">Prenuptial agreement</label></div>
+      <div class="check"><input type="checkbox" id="d3"><label for="d3">Birth certificates</label></div>
+      <div class="check"><input type="checkbox" id="d4"><label for="d4">Titles / TCTs</label></div>
+      <div class="check"><input type="checkbox" id="d5"><label for="d5">Tax declarations</label></div>
+      <div class="check"><input type="checkbox" id="d6"><label for="d6">Stock certificates / SHA</label></div>
+      <div class="check"><input type="checkbox" id="d7"><label for="d7">Insurance policies</label></div>
+      <div class="check"><input type="checkbox" id="d8"><label for="d8">Loan statements</label></div>
+      <div class="check"><input type="checkbox" id="d9"><label for="d9">Existing will</label></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head"><h2>Before leaving the meeting</h2><span class="n">8</span></div>
+    <div class="ticks">
+      <div class="check"><input type="checkbox" id="c1"><label for="c1">Marriage date is exact, not approximate</label></div>
+      <div class="check"><input type="checkbox" id="c2"><label for="c2">Every asset has a &ldquo;how acquired&rdquo;</label></div>
+      <div class="check"><input type="checkbox" id="c3"><label for="c3">Estimated values marked (est.)</label></div>
+      <div class="check"><input type="checkbox" id="c4"><label for="c4">Liquidity question asked out loud</label></div>
+      <div class="check"><input type="checkbox" id="c5"><label for="c5">Date of birth captured for every child</label></div>
+      <div class="check"><input type="checkbox" id="c6"><label for="c6">Can this be run in the analysis right now?</label></div>
+    </div>
+    <div class="f" style="margin-top:14px"><label for="ff-missing">If not, what is missing</label><input type="text" id="ff-missing"></div>
+  </section>
+
+  <section class="panel no-print">
+    <div class="panel-head"><h2>Run it</h2></div>
+    <p class="note">The client, the spouse, the marriage, the heirs and the asset schedule carry straight into the analysis. Bequests, tax assumptions and the insurance equalizer are planning decisions &mdash; you make those there, not here.</p>
+    <div class="actions">
+      <button class="btn primary" id="ff-go" type="button">Open in the analysis &rarr;</button>
+      <button class="btn" id="ff-print" type="button">Print this sheet</button>
+      <button class="btn" id="ff-clear" type="button">Clear</button>
+      <span class="said" id="ff-said"></span>
+    </div>
+    <p class="hint" style="margin-top:11px">Nothing is uploaded. The sheet is carried across inside this browser tab and is gone when you close it.</p>
+  </section>
+
+  <p class="foot">Battle River &middot; Estate Planning Fact-Find &middot; Confidential once completed &mdash; it holds the client's family and finances.</p>
+</div>
+
+<script>
+// Built from src/ by build.mjs — edit the modules, not this file.
+(function(){
+"use strict";
+
+// ---------- src/intake.js ----------
+// The hand-off between the fact-find sheet and the calculator.
+//
+// The sheet is filled in front of the client; the calculator is run from it.
+// Rather than re-typing the meeting into the app, the sheet writes a partial
+// scenario here and the calculator reads it once on boot.
+//
+// Transport is sessionStorage, not the URL. Client names, property values and
+// family structure have no business in a browser history entry, a referrer
+// header or a shared link, and sessionStorage dies with the tab.
+//
+// buildIntake is pure and is where every coercion lives, so the mapping can be
+// tested in Node without a DOM. See test/intake.test.mjs.
+
+const INTAKE_KEY = "eda:intake";
+
+const OWNERS = ["client", "spouse", "both"];
+const ACQS   = ["before", "onerous", "gratuitous", "fruits"];
+const LIQS   = ["realty", "liquid"];
+const PRENUPS= ["none", "cpg", "acp", "sep"];
+
+function pick(v, allowed, fallback){
+  return allowed.indexOf(v) >= 0 ? v : fallback;
+}
+
+// "₱1,250,000" and "1250000" both mean the same thing on a handwritten sheet.
+function money(v){
+  if (typeof v === "number") return isFinite(v) && v > 0 ? v : 0;
+  var n = parseFloat(String(v == null ? "" : v).replace(/[^0-9.]/g, ""));
+  return isFinite(n) && n > 0 ? n : 0;
+}
+
+function isoDate(v){
+  return /^\d{4}-\d{2}-\d{2}$/.test(String(v || "")) ? v : "";
+}
+
+function people(rows, cap){
+  var out = (rows || [])
+    .map(function(r){ return { name: String((r && r.name) || "").trim(), dob: isoDate(r && r.dob) }; })
+    .filter(function(r){ return r.name !== ""; });          // a blank line is not an heir
+  return cap ? out.slice(0, cap) : out;
+}
+
+function buildIntake(f){
+  f = f || {};
+  var married = !!f.married;
+
+  var props = (f.props || []).map(function(p){
+    return {
+      name:  String((p && p.name)  || "").trim(),
+      note:  String((p && p.note)  || "").trim(),
+      value: money(p && p.value),
+      owner: pick(p && p.owner, OWNERS, "client"),
+      acq:   pick(p && p.acq,   ACQS,   "onerous"),
+      liq:   pick(p && p.liq,   LIQS,   "realty"),
+      to:    "residue"        // bequests are a planning decision, not a fact-find one
+    };
+  }).filter(function(p){
+    return p.name !== "" || p.value > 0;                    // drop the empty ruled lines
+  }).map(function(p){
+    // An unmarried client has no conjugal estate. A sheet that says otherwise is
+    // a ticked box, not a fact, so it is corrected here rather than carried in.
+    if (!married && p.owner !== "client") p.owner = "client";
+    return p;
+  });
+
+  var out = {
+    client:    String(f.client || "").trim(),
+    clientDob: isoDate(f.clientDob),
+    spouse:    married,
+    lc:  people(f.lc),
+    ilc: people(f.ilc),
+    lp:  people(f.lp, 2),                                   // the engine recognises two parents
+    props: props,
+    debts:  money(f.debts),
+    debtOn: married ? pick(f.debtOn, ["conjugal", "exclusive"], "conjugal") : "exclusive"
+  };
+
+  if (married){
+    out.spouseName = String(f.spouseName || "").trim();
+    out.spouseDob  = isoDate(f.spouseDob);
+    out.date       = isoDate(f.marriageDate);
+    out.prenup     = pick(f.prenup, PRENUPS, "none");
+  }
+  return out;
+}
+
+// Merge a stored intake into the live scenario. Only keys the sheet actually
+// carried are touched; everything else keeps its default.
+function applyIntake(S, raw){
+  if (!S || !raw) return false;
+  Object.keys(raw).forEach(function(k){
+    if (raw[k] !== undefined) S[k] = raw[k];
+  });
+  return true;
+}
+
+function stashIntake(payload){
+  try { sessionStorage.setItem(INTAKE_KEY, JSON.stringify(payload)); return true; }
+  catch (e) { return false; }
+}
+
+// Read once and burn it — a refresh should not silently re-import a stale meeting.
+function takeIntake(){
+  try {
+    var raw = sessionStorage.getItem(INTAKE_KEY);
+    if (!raw) return null;
+    sessionStorage.removeItem(INTAKE_KEY);
+    return JSON.parse(raw);
+  } catch (e) { return null; }
+}
+
+// ---------- src/factfind.js ----------
+// The fact-find sheet's behaviour: repeating rows, the hand-off, and printing.
+// The mapping itself lives in intake.js so it can be tested without a DOM.
+
+
+var $ = function(id){ return document.getElementById(id); };
+
+var SEED = { lc:3, ilc:2, lp:2, props:6 };   // enough ruled lines for a printed sheet
+
+function personRow(key){
+  var d = document.createElement("div");
+  d.className = "row person";
+  d.innerHTML =
+    '<input type="text" data-f="name" aria-label="Name">' +
+    '<input type="date" data-f="dob" aria-label="Date of birth">' +
+    '<button class="kill no-print" type="button" title="Remove">&times;</button>';
+  return d;
+}
+
+function assetRow(){
+  var d = document.createElement("div");
+  d.className = "row asset";
+  d.innerHTML =
+    '<input type="text" data-f="name" aria-label="Description" placeholder="Quezon City">' +
+    '<input type="text" data-f="note" aria-label="Detail" placeholder="House and lot">' +
+    '<input type="text" data-f="value" class="num" aria-label="Value" placeholder="0">' +
+    '<select data-f="owner" aria-label="Held by">' +
+      '<option value="client">Client</option><option value="spouse">Spouse</option><option value="both">Both</option>' +
+    '</select>' +
+    '<select data-f="acq" aria-label="Acquired">' +
+      '<option value="onerous">During &mdash; bought</option>' +
+      '<option value="before">Before the marriage</option>' +
+      '<option value="gratuitous">Inherited or gifted</option>' +
+      '<option value="fruits">Fruits of exclusive property</option>' +
+    '</select>' +
+    '<select data-f="liq" aria-label="Type">' +
+      '<option value="realty">Property</option><option value="liquid">Cash or fund</option>' +
+    '</select>' +
+    '<button class="kill no-print" type="button" title="Remove">&times;</button>';
+  return d;
+}
+
+function add(key){
+  var host = $("ff-" + key);
+  host.appendChild(key === "props" ? assetRow() : personRow(key));
+}
+
+function readRows(key){
+  return Array.prototype.map.call($("ff-" + key).querySelectorAll(".row"), function(row){
+    var o = {};
+    row.querySelectorAll("[data-f]").forEach(function(el){ o[el.dataset.f] = el.value; });
+    return o;
+  });
+}
+
+function gather(){
+  return {
+    client:       $("ff-client").value,
+    clientDob:    $("ff-clientdob").value,
+    married:      $("ff-married").checked,
+    spouseName:   $("ff-spousename").value,
+    spouseDob:    $("ff-spousedob").value,
+    marriageDate: $("ff-marriagedate").value,
+    prenup:       $("ff-prenup").value,
+    lc:  readRows("lc"),
+    ilc: readRows("ilc"),
+    lp:  readRows("lp"),
+    props: readRows("props"),
+    debts:  $("ff-debts").value,
+    debtOn: $("ff-debton").value
+  };
+}
+
+function say(msg, bad){
+  var el = $("ff-said");
+  el.textContent = msg || "";
+  el.className = "said" + (bad ? " bad" : "");
+}
+
+function wireFactfind(){
+  ["lc","ilc","lp","props"].forEach(function(k){
+    for (var i = 0; i < SEED[k]; i++) add(k);
+  });
+
+  document.querySelectorAll("[data-add]").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      var k = btn.dataset.add;
+      if (k === "lp" && $("ff-lp").querySelectorAll(".row").length >= 2) return;  // two parents, no more
+      add(k);
+      var rows = $("ff-" + k).querySelectorAll('.row input[data-f="name"]');
+      if (rows.length) rows[rows.length - 1].focus();
+    });
+  });
+
+  ["lc","ilc","lp","props"].forEach(function(k){
+    $("ff-" + k).addEventListener("click", function(e){
+      var b = e.target.closest(".kill"); if (!b) return;
+      var row = b.closest(".row");
+      if ($("ff-" + k).querySelectorAll(".row").length > 1) row.remove();
+      else row.querySelectorAll("input,select").forEach(function(el){
+        if (el.tagName === "SELECT") el.selectedIndex = 0; else el.value = "";
+      });
+      say("");
+    });
+  });
+
+  $("ff-married").addEventListener("change", function(e){
+    $("ff-spousefields").style.display = e.target.checked ? "" : "none";
+  });
+
+  $("ff-go").addEventListener("click", function(){
+    var raw = gather();
+    var payload = buildIntake(raw);
+
+    if (!payload.client){ say("Name the client first.", true); $("ff-client").focus(); return; }
+    if (payload.spouse && !payload.date){
+      say("The date of marriage decides the property regime — it cannot be left blank.", true);
+      $("ff-marriagedate").focus(); return;
+    }
+    if (!payload.props.length){ say("Add at least one asset.", true); return; }
+    if (!payload.lc.length && !payload.ilc.length && !payload.lp.length && !payload.spouse){
+      say("No heirs recorded — add a child, a parent, or a surviving spouse.", true); return;
+    }
+
+    if (!stashIntake(payload)){ say("This browser is blocking session storage, so the hand-off cannot run.", true); return; }
+    window.location.href = "index.html";
+  });
+
+  $("ff-print").addEventListener("click", function(){ window.print(); });
+
+  $("ff-clear").addEventListener("click", function(){
+    document.querySelectorAll(".wrap input, .wrap textarea").forEach(function(el){
+      if (el.type === "checkbox") el.checked = false; else el.value = "";
+    });
+    document.querySelectorAll(".wrap select").forEach(function(el){ el.selectedIndex = 0; });
+    $("ff-married").checked = true;
+    $("ff-spousefields").style.display = "";
+    say("Cleared.");
+  });
+
+  (function(){
+    var d = new Date();
+    $("ff-metdate").value = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+  })();
+}
+
+wireFactfind();
+})();
+</script>
+</body>
+</html>

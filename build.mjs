@@ -1,10 +1,15 @@
-// Bundles src/ into a single self-contained index.html.
+// Bundles src/ into self-contained HTML pages.
 //
 // Why bundle at all, when the source is already plain ES modules? Because a
 // single file has no relative paths to get wrong, no CORS rules to trip over,
 // and nothing for a static host to mis-serve. It opens by double-clicking it
 // from a folder, and it deploys by copying one file. The modular source stays
 // the thing you edit and test; this is just what ships.
+//
+// Two pages come out of it:
+//   index.html     the analysis. Heavy, because the PDF engine is inlined.
+//   factfind.html  the sheet you fill in with the client. Light — it prints
+//                  with the browser's own dialog, so it carries no vendor code.
 //
 //   npm run build
 //
@@ -18,10 +23,11 @@ const read = p => readFileSync(join(ROOT, p), "utf8");
 // Dependency order, leaves first. Kept explicit rather than resolved from the
 // import graph: the list is short, and an explicit order is easier to reason
 // about than a topological sort you have to trust.
-const MODULES = [
+const APP_MODULES = [
   "config.js",
   "src/state.js",
   "src/format.js",
+  "src/intake.js",
   "src/engine/regime.js",
   "src/engine/succession.js",
   "src/engine/assets.js",
@@ -32,6 +38,11 @@ const MODULES = [
   "src/ui/render.js",
   "src/ui/wire.js",
   "src/cloud.js"
+];
+
+const FACTFIND_MODULES = [
+  "src/intake.js",
+  "src/factfind.js"
 ];
 
 function flatten(src) {
@@ -45,10 +56,7 @@ function flatten(src) {
     .trim();
 }
 
-const bundle = MODULES.map(m => {
-  const body = flatten(read(m));
-  return `// ---------- ${m} ----------\n${body}`;
-}).join("\n\n");
+const bundleOf = mods => mods.map(m => `// ---------- ${m} ----------\n${flatten(read(m))}`).join("\n\n");
 
 // html2canvas only ever sees screen styles, so the @media print block would be
 // ignored during a PDF export. Derive a body.exporting copy of it here — one
@@ -79,19 +87,23 @@ function exportingVariant(css) {
   }).filter(Boolean).join("\n");
 }
 
-const baseCss = read("src/styles.css").trim();
-const css = baseCss + "\n\n/* ---------- derived from @media print, for PDF export ---------- */\n"
-          + exportingVariant(baseCss);
-const vendor = read("vendor/html2pdf.bundle.min.js");
-const body = read("src/body.html").trim();
+// The two pages share one palette. Rather than keep a second copy in sync by
+// hand, the fact-find borrows the token block straight out of styles.css.
+const TOKEN_MARK = "/* ===== TOKENS END ===== */";
+function tokensFrom(css) {
+  const at = css.indexOf(TOKEN_MARK);
+  if (at < 0) throw new Error(`styles.css is missing its ${TOKEN_MARK} marker`);
+  return css.slice(0, at).trim();
+}
 
-const html = `<!doctype html>
+function page({ title, description, css, body, bundle, boot, vendor }) {
+  return `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Estate Distribution Analysis</title>
-<meta name="description" content="Compulsory legitimes, intestate shares, estate tax and the insurance equalizer, under the Civil Code and Family Code of the Philippines.">
+<title>${title}</title>
+<meta name="description" content="${description}">
 <meta name="color-scheme" content="light dark">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>%E2%9A%96%EF%B8%8F</text></svg>">
 <style>
@@ -100,9 +112,9 @@ ${css}
 </head>
 <body>
 ${body}
-<script>/* html2pdf.js — MIT/Apache-2.0, see vendor/html2pdf.bundle.min.js.LICENSE.txt */
+${vendor ? `<script>/* html2pdf.js — MIT/Apache-2.0, see vendor/html2pdf.bundle.min.js.LICENSE.txt */
 ${vendor}
-</script>
+</script>` : ""}
 <script>
 // Built from src/ by build.mjs — edit the modules, not this file.
 (function(){
@@ -110,13 +122,38 @@ ${vendor}
 
 ${bundle}
 
-wire();
-initCloud();
+${boot}
 })();
 </script>
 </body>
 </html>
 `;
+}
 
-writeFileSync(join(ROOT, "index.html"), html);
-console.log(`index.html written — ${(html.length / 1024).toFixed(0)} KB, self-contained (PDF engine bundled)`);
+const baseCss = read("src/styles.css").trim();
+const appCss = baseCss + "\n\n/* ---------- derived from @media print, for PDF export ---------- */\n"
+             + exportingVariant(baseCss);
+
+const app = page({
+  title: "Estate Distribution Analysis",
+  description: "Compulsory legitimes, intestate shares, estate tax and the insurance equalizer, under the Civil Code and Family Code of the Philippines.",
+  css: appCss,
+  body: read("src/body.html").trim(),
+  bundle: bundleOf(APP_MODULES),
+  vendor: read("vendor/html2pdf.bundle.min.js"),
+  boot: "applyIntake(S, takeIntake());\nwire();\ninitCloud();"
+});
+
+const factfind = page({
+  title: "Estate Planning Fact-Find",
+  description: "The client interview behind an estate distribution analysis — the marriage, the heirs, the asset schedule and the questions that get skipped.",
+  css: tokensFrom(baseCss) + "\n\n" + read("src/factfind.css").trim(),
+  body: read("src/factfind.html").trim(),
+  bundle: bundleOf(FACTFIND_MODULES),
+  boot: "wireFactfind();"
+});
+
+writeFileSync(join(ROOT, "index.html"), app);
+writeFileSync(join(ROOT, "factfind.html"), factfind);
+console.log(`index.html    — ${(app.length / 1024).toFixed(0)} KB, self-contained (PDF engine bundled)`);
+console.log(`factfind.html — ${(factfind.length / 1024).toFixed(0)} KB, self-contained`);
