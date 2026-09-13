@@ -19,6 +19,7 @@ Built for **Battle River** by Matthew Isaiah Masindo, Certified Trust and Estate
 | **Settlement cost** | Judicial versus extrajudicial, with the donor's tax trap when an heir waives a share to a named person. |
 | **Liquidity** | Cash against what settlement actually needs, and what each heir receives in cash versus a claim on property. |
 | **The equalizer** | Sizes the life insurance that closes the gap when a specific gift leaves the other heirs short. |
+| **Download PDF** | One click produces an 8-page client pack named after the client — no print dialog. |
 
 Everything runs in the browser. No account, no server, nothing leaves the page.
 
@@ -44,6 +45,29 @@ flattens the ES modules into one file. Edit the modules, then rebuild — never 
 Why bundle at all? A single file has no relative paths to get wrong, no CORS rules
 to trip over, and nothing for a static host to mis-serve. The modular source stays
 the thing you edit and test; this is just what ships.
+
+## The PDF export
+
+**Download PDF** builds the whole client pack as a file and saves it as
+`Estate Plan - <client> - <date>.pdf`. No print dialog, no naming it yourself.
+
+Two things make it work, and both are worth knowing before you touch them:
+
+- `html2canvas` only ever sees *screen* styles, so the `@media print` rules that
+  paginate the pack would be ignored. `build.mjs` derives a `body.exporting` copy
+  of that entire block, and `src/export.js` switches it on for the capture. One
+  source of truth — edit the print rules and the PDF follows.
+- `html2canvas` cannot draw inline SVG, which silently dropped every pie chart.
+  Each chart is serialised to a standalone data URI first, with CSS custom
+  properties resolved to literal colours, and swapped for an `<img>`.
+
+The trade-off: the export rasterises, so the file is around 3 MB and its text is
+not selectable. **Print** is still there beside it and produces a ~300 KB vector
+PDF with selectable text — it just costs you a dialog. Use Download for clients,
+Print when you want a smaller file to email.
+
+The PDF engine (html2pdf.js, ~900 KB) is bundled into `index.html` so the export
+works with no internet. That is most of the file's size.
 
 ## Test it
 

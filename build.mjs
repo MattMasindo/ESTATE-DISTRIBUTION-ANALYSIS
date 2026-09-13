@@ -27,6 +27,7 @@ const MODULES = [
   "src/engine/assets.js",
   "src/engine/tax.js",
   "src/engine/plan.js",
+  "src/export.js",
   "src/ui/charts.js",
   "src/ui/render.js",
   "src/ui/wire.js",
@@ -49,7 +50,39 @@ const bundle = MODULES.map(m => {
   return `// ---------- ${m} ----------\n${body}`;
 }).join("\n\n");
 
-const css = read("src/styles.css").trim();
+// html2canvas only ever sees screen styles, so the @media print block would be
+// ignored during a PDF export. Derive a body.exporting copy of it here — one
+// source of truth, switched on for the duration of the capture.
+function exportingVariant(css) {
+  const at = css.indexOf("@media print{");
+  if (at < 0) return "";
+  let depth = 0, end = at + "@media print".length;
+  for (; end < css.length; end++) {
+    if (css[end] === "{") depth++;
+    else if (css[end] === "}") { depth--; if (depth === 0) break; }
+  }
+  const inner = css.slice(at + "@media print{".length, end);
+
+  const rules = [];
+  let buf = "", d = 0;
+  for (const ch of inner) {
+    buf += ch;
+    if (ch === "{") d++;
+    else if (ch === "}") { d--; if (d === 0) { rules.push(buf); buf = ""; } }
+  }
+  return rules.map(rule => {
+    if (rule.trim().startsWith("@")) return "";               // @page has no screen equivalent
+    const brace = rule.indexOf("{");
+    const sel = rule.slice(0, brace).split(",")
+      .map(s => "body.exporting " + s.trim()).join(",");
+    return sel + rule.slice(brace);
+  }).filter(Boolean).join("\n");
+}
+
+const baseCss = read("src/styles.css").trim();
+const css = baseCss + "\n\n/* ---------- derived from @media print, for PDF export ---------- */\n"
+          + exportingVariant(baseCss);
+const vendor = read("vendor/html2pdf.bundle.min.js");
 const body = read("src/body.html").trim();
 
 const html = `<!doctype html>
@@ -67,6 +100,9 @@ ${css}
 </head>
 <body>
 ${body}
+<script>/* html2pdf.js — MIT/Apache-2.0, see vendor/html2pdf.bundle.min.js.LICENSE.txt */
+${vendor}
+</script>
 <script>
 // Built from src/ by build.mjs — edit the modules, not this file.
 (function(){
@@ -83,4 +119,4 @@ initCloud();
 `;
 
 writeFileSync(join(ROOT, "index.html"), html);
-console.log(`index.html written — ${(html.length / 1024).toFixed(0)} KB, ${html.split("\n").length} lines, no external files`);
+console.log(`index.html written — ${(html.length / 1024).toFixed(0)} KB, self-contained (PDF engine bundled)`);

@@ -493,3 +493,9 @@ footer{font-size:11.5px;color:var(--ink-3);line-height:1.5;border-top:1px solid 
 .cloudbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;width:100%;margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
 .cloudbar input,.cloudbar select{width:auto;min-width:170px}
 .cloudbar button{white-space:nowrap}
+
+/* ---------- header actions ---------- */
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+button.ghost.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+button.ghost.primary:hover{filter:brightness(1.1);color:#fff}
+button.ghost:disabled{opacity:.6;cursor:default}

@@ -3,6 +3,7 @@
 import { S, $ } from "../state.js";
 import { parseMoney, commafy } from "../format.js";
 import { render, renderPropRows, renderHeirList } from "./render.js";
+import { downloadPdf } from "../export.js";
 
 export function wire(){
 /* ---------- wiring ---------- */
@@ -118,6 +119,7 @@ $("wgrid").addEventListener("change", function(e){
 });
 
 $("btn-print").addEventListener("click", function(){ window.print(); });
+  $("btn-pdf").addEventListener("click", function(e){ downloadPdf(e.currentTarget); });
 
 $("prep-date").textContent = new Date().toLocaleDateString("en-PH", {day:"numeric", month:"long", year:"numeric"});
 (function(){
