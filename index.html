@@ -7,7 +7,502 @@
 <meta name="description" content="Compulsory legitimes, intestate shares, estate tax and the insurance equalizer, under the Civil Code and Family Code of the Philippines.">
 <meta name="color-scheme" content="light dark">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>%E2%9A%96%EF%B8%8F</text></svg>">
-<link rel="stylesheet" href="./src/styles.css">
+<style>
+:root{
+  color-scheme: light;
+  --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-num: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  --ground:#F1F3F6; --surface:#FFFFFF; --surface-2:#F7F8FA;
+  --ink:#14171D; --ink-2:#5C6472; --ink-3:#8B93A1;
+  --line:#DCE0E7; --line-strong:#C3C9D3;
+  --accent:#0F3D73; --accent-soft:#E4ECF7;
+  --seal:#A81C2E; --seal-soft:#F7E6E8;
+  --s-lc:#2a78d6; --s-ss:#eb6834; --s-ilc:#1baf7a; --s-lp:#4a3aa7;
+  --s-free:#AEB4BF; --s-free-line:#8A919E;
+  --chip-shared:#E4ECF7; --chip-shared-ink:#0F3D73;
+  --chip-cli:#EDE9F8; --chip-cli-ink:#4a3aa7;
+  --chip-sp:#FCEAE1; --chip-sp-ink:#9A4517;
+  --liq:#184f95; --illiq:#86b6ef; --ins:#eda100;
+  --shadow:0 1px 2px rgba(16,22,34,.05), 0 8px 24px -16px rgba(16,22,34,.28);
+  --radius:6px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --ground:#0E1116; --surface:#171B22; --surface-2:#1E232B;
+    --ink:#E7EBF1; --ink-2:#9AA3B2; --ink-3:#6E7787;
+    --line:#2A313B; --line-strong:#3A424E;
+    --accent:#78AEEC; --accent-soft:#1B2733;
+    --seal:#E8737F; --seal-soft:#2B1A1E;
+    --s-lc:#3987e5; --s-ss:#d95926; --s-ilc:#199e70; --s-lp:#9085e9;
+    --s-free:#4E5560; --s-free-line:#767E8B;
+    --chip-shared:#1B2733; --chip-shared-ink:#78AEEC;
+    --chip-cli:#241F3A; --chip-cli-ink:#9085e9;
+    --chip-sp:#2E1D14; --chip-sp-ink:#E08A5E;
+    --liq:#3987e5; --illiq:#184f95; --ins:#c98500;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 28px -18px rgba(0,0,0,.9);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --ground:#0E1116; --surface:#171B22; --surface-2:#1E232B;
+  --ink:#E7EBF1; --ink-2:#9AA3B2; --ink-3:#6E7787;
+  --line:#2A313B; --line-strong:#3A424E;
+  --accent:#78AEEC; --accent-soft:#1B2733;
+  --seal:#E8737F; --seal-soft:#2B1A1E;
+  --s-lc:#3987e5; --s-ss:#d95926; --s-ilc:#199e70; --s-lp:#9085e9;
+  --s-free:#4E5560; --s-free-line:#767E8B;
+  --chip-shared:#1B2733; --chip-shared-ink:#78AEEC;
+  --chip-cli:#241F3A; --chip-cli-ink:#9085e9;
+  --chip-sp:#2E1D14; --chip-sp-ink:#E08A5E;
+  --liq:#3987e5; --illiq:#184f95; --ins:#c98500;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 28px -18px rgba(0,0,0,.9);
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;background:var(--ground);color:var(--ink);
+  font-family:var(--font-ui);
+  font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;
+}
+.wrap{
+  max-width:1140px;margin:0 auto;display:flex;flex-direction:column;gap:20px;
+  padding-inline:max(16px, env(safe-area-inset-left, 0px)) max(16px, env(safe-area-inset-right, 0px));
+  padding-block:20px calc(env(safe-area-inset-bottom, 0px) + 56px);
+}
+
+/* The band runs edge to edge; its content starts below the status bar and any
+   Dynamic Island. env() resolves to 0 wherever there is no inset, so the same
+   rule gives a plain 16px on Android, tablet and desktop. */
+.appbar{
+  background:var(--surface);
+  border-bottom:2px solid var(--ink);
+  padding-top:calc(env(safe-area-inset-top, 0px) + 16px);
+  padding-bottom:14px;
+  padding-inline:max(16px, env(safe-area-inset-left, 0px)) max(16px, env(safe-area-inset-right, 0px));
+}
+.masthead{max-width:1140px;margin:0 auto;display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px 28px}
+.masthead h1{font-family:var(--font-ui);font-weight:600;font-size:clamp(24px,4.2vw,34px);line-height:1.1;margin:0;letter-spacing:-.022em;text-wrap:balance}
+.masthead .sub{font-size:12px;color:var(--ink-2);max-width:46ch;margin-top:6px}
+.eyebrow{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
+
+.prep{display:flex;flex-direction:column;align-items:flex-end;gap:2px;text-align:right}
+.prep input{
+  border:1px solid transparent;background:transparent;border-radius:4px;padding:2px 6px;
+  text-align:right;font:inherit;color:var(--ink);width:auto;min-width:230px;
+}
+.prep input:hover{border-color:var(--line)}
+.prep input:focus{border-color:var(--accent-soft);background:var(--surface)}
+.prep .pname{font-family:var(--font-ui);font-size:15px;font-weight:600;letter-spacing:-.012em}
+.prep .ptitle{font-size:12px;color:var(--ink-2)}
+.prep .pdate{font-size:11px;color:var(--ink-3);padding-right:6px;margin-top:2px}
+@media (max-width:620px){
+  .masthead{align-items:flex-start}
+  .masthead > .stack{align-items:flex-start !important;width:100%}
+  .prep{align-items:flex-start;text-align:left}
+  .prep input{text-align:left;min-width:0;width:100%;max-width:320px;padding-inline:0 6px}
+  .prep .pdate{padding-right:0}
+}
+
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+.panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid var(--line)}
+.panel-head h2{font-family:var(--font-ui);font-weight:600;font-size:16.5px;margin:0;letter-spacing:-.014em}
+
+input[type=text],input[type=date],select{
+  width:100%;background:var(--surface-2);color:var(--ink);
+  border:1px solid var(--line-strong);border-radius:4px;padding:7px 9px;font:inherit;font-size:13.5px;
+}
+select{padding-right:4px;cursor:pointer}
+input::placeholder{color:var(--ink-3)}
+input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums;text-align:right}
+
+.lbl{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-2);font-weight:600}
+.hint{font-size:11.5px;color:var(--ink-3);line-height:1.4}
+
+button.ghost{font:inherit;font-size:12px;font-weight:500;padding:6px 11px;border-radius:4px;cursor:pointer;background:var(--surface);border:1px solid var(--line-strong);color:var(--ink-2)}
+button.ghost:hover{border-color:var(--accent);color:var(--accent)}
+button.add{font:inherit;font-size:12px;font-weight:500;padding:5px 10px;border-radius:4px;cursor:pointer;background:var(--accent-soft);border:1px solid transparent;color:var(--accent)}
+button.add:hover{border-color:var(--accent)}
+button.kill{border:0;background:transparent;color:var(--ink-3);cursor:pointer;font:inherit;font-size:16px;line-height:1;width:28px;height:30px;border-radius:4px;flex:none}
+button.kill:hover{background:var(--seal-soft);color:var(--seal)}
+
+
+/* ---------- summary sheet ---------- */
+.summary{border-color:var(--line-strong)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr))}
+.tile{padding:14px 16px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:3px}
+.tile:last-child{border-right:0}
+.tile .k{font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
+.tile .v{font-family:var(--font-num);font-variant-numeric:tabular-nums;font-size:clamp(17px,2.4vw,21px);font-weight:600;letter-spacing:-.025em;line-height:1.15}
+.tile .n{font-size:11px;color:var(--ink-3);line-height:1.35}
+.tile.good .v{color:var(--s-ilc)}
+.tile.warn .v{color:var(--seal)}
+.tile.key{background:var(--accent-soft)}
+.tile.key .v{color:var(--accent)}
+.print-only{display:none}
+.sumpies{border-bottom:1px solid var(--line)}
+.sumpie{min-width:0}
+.sumpie .cap2{display:block;font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);font-weight:600;padding:10px 12px 0}
+.facts{padding:14px 16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:9px 26px}
+.fact{display:flex;gap:9px;font-size:12.5px;line-height:1.5;color:var(--ink-2)}
+.fact .no{font-family:var(--font-num);font-size:10.5px;font-weight:600;color:var(--ink-3);padding-top:2px;flex:none}
+.fact b{color:var(--ink);font-weight:600}
+
+/* ---------- people ---------- */
+.people{padding:16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(228px,1fr));gap:18px 22px;align-items:start}
+.group{display:flex;flex-direction:column;gap:8px;min-width:0}
+.group-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.group-head .lbl{display:flex;align-items:center;gap:7px}
+.namerow{display:flex;align-items:center;gap:4px}
+.namerow .ord{font-family:var(--font-num);font-size:11px;color:var(--ink-3);width:16px;flex:none;text-align:right}
+.check{display:flex;align-items:center;gap:8px;font-size:13px}
+.check input{width:15px;height:15px;accent-color:var(--accent);margin:0}
+.empty{font-size:12px;color:var(--ink-3);font-style:italic;padding:3px 0 1px 20px}
+.sw{width:10px;height:10px;border-radius:2px;flex:none}
+.stack{display:flex;flex-direction:column;gap:4px}
+
+/* ---------- regime banner ---------- */
+.regime-bar{
+  display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap;
+  padding:11px 16px;border-top:1px solid var(--line);background:var(--surface-2);
+}
+.regime-bar .badge{
+  font-family:var(--font-ui);font-size:13.5px;font-weight:600;color:var(--accent);letter-spacing:-.008em;
+  white-space:nowrap;padding-top:1px;
+}
+.regime-bar .why{font-size:12.5px;color:var(--ink-2);line-height:1.45;flex:1;min-width:240px}
+
+/* ---------- property schedule ---------- */
+.sched{padding:4px 16px 16px}
+.prow{
+  display:grid;
+  grid-template-columns:minmax(126px,1.2fr) minmax(94px,.75fr) minmax(82px,.55fr) minmax(178px,1.4fr) minmax(120px,.9fr) 28px;
+  gap:8px;align-items:center;padding:5px 0;
+}
+.prow.head{padding-bottom:7px;border-bottom:1px solid var(--line-strong);margin-bottom:4px}
+.prow.head span{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);font-weight:600;line-height:1.25}
+.prow.head span.r{text-align:right}
+.cell{display:flex;flex-direction:column;gap:2px;min-width:0}
+.cell .mini{display:none;font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
+.chip{
+  display:inline-block;font-size:11px;font-weight:600;letter-spacing:.02em;padding:4px 9px;border-radius:100px;
+  text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.chip.shared{background:var(--chip-shared);color:var(--chip-shared-ink)}
+.chip.cli{background:var(--chip-cli);color:var(--chip-cli-ink)}
+.chip.sp{background:var(--chip-sp);color:var(--chip-sp-ink)}
+.chip.split{background:var(--surface-2);color:var(--ink-2);border:1px dashed var(--line-strong)}
+
+.ptot{
+  display:grid;grid-template-columns:minmax(140px,1.5fr) repeat(3,1fr) 28px;gap:8px;
+  margin-top:10px;padding:10px 0 0;border-top:1px solid var(--line-strong);
+}
+.ptot .tcell{display:flex;flex-direction:column;gap:2px}
+.ptot .tcell span:first-child{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
+.ptot .tcell .tv{font-family:var(--font-num);font-variant-numeric:tabular-nums;font-size:14px;font-weight:500}
+.ptot b{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);align-self:center}
+
+.sched.no-spouse .sp-col{display:none}
+.sched.no-spouse .prow{grid-template-columns:minmax(140px,2fr) minmax(110px,1fr) 28px}
+.sched.no-spouse .ptot{grid-template-columns:minmax(140px,2fr) 1fr 28px}
+.sched-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:14px}
+.debt{display:flex;align-items:center;gap:9px}
+.debt label{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-2);font-weight:600;white-space:nowrap}
+.debt input{width:140px}
+
+@media (max-width:860px){
+  .prow.head{display:none}
+  .prow{grid-template-columns:1fr 1fr;gap:8px 10px;padding:12px 0;border-bottom:1px solid var(--line);position:relative}
+  .prow .cell:first-child{grid-column:1 / -1}
+  .prow .cell .mini{display:block}
+  .prow button.kill{position:absolute;top:8px;right:0}
+  .ptot{grid-template-columns:1fr 1fr;gap:10px}
+  .ptot b{grid-column:1 / -1}
+  .sched.no-spouse .prow,.sched.no-spouse .ptot{grid-template-columns:1fr 1fr}
+}
+
+/* ---------- derivation ---------- */
+.derive{display:grid;grid-template-columns:repeat(auto-fit,minmax(162px,1fr));border-top:1px solid var(--line)}
+.derive .cell2{padding:12px 16px;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:3px}
+.derive .cell2:last-child{border-right:0}
+.derive .k{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
+.derive .v{font-family:var(--font-num);font-size:15px;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.derive .n{font-size:11px;color:var(--ink-3);line-height:1.3}
+.derive .cell2.net{background:var(--accent-soft)}
+.derive .cell2.net .v{font-size:18px;font-weight:600;color:var(--accent)}
+
+/* ---------- results ---------- */
+.results{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media (max-width:760px){.results{grid-template-columns:1fr}}
+.col-head{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid var(--line)}
+.col-head h2{font-family:var(--font-ui);font-weight:600;font-size:17px;margin:0;letter-spacing:-.016em}
+.col-head .tag{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;color:var(--ink-3)}
+.chartwrap{position:relative;padding:18px 16px 4px;display:flex;justify-content:center}
+.chartwrap svg{width:100%;max-width:250px;height:auto;display:block}
+.slice{transition:opacity .12s ease}
+.chartwrap.hovering .slice{opacity:.45}
+.chartwrap.hovering .slice.on{opacity:1}
+.pie-empty{font-family:var(--font-ui);font-size:12px;fill:var(--ink-3)}
+.slice-pct{font-family:var(--font-num);font-size:11px;font-weight:600;fill:#fff;pointer-events:none;letter-spacing:-.02em}
+.slice-pct.dark-text{fill:var(--ink)}
+.tip{position:absolute;pointer-events:none;opacity:0;transform:translate(-50%,-118%);background:var(--ink);color:var(--ground);border-radius:4px;padding:6px 9px;font-size:11.5px;line-height:1.35;white-space:nowrap;z-index:5;transition:opacity .1s ease;box-shadow:0 6px 18px -8px rgba(0,0,0,.5)}
+.tip b{font-family:var(--font-num);font-weight:600;display:block;font-size:12.5px}
+
+.legend{padding:6px 16px 16px;display:flex;flex-direction:column;gap:1px}
+.lrow{display:grid;grid-template-columns:10px 1fr auto;gap:10px;align-items:baseline;padding:8px 0;border-bottom:1px solid var(--line)}
+.lrow:last-child{border-bottom:0}
+.lrow .sw{align-self:center}
+.lname{font-size:13px;line-height:1.3;min-width:0}
+.lname .per{display:block;font-size:11px;color:var(--ink-3);line-height:1.35;overflow-wrap:anywhere}
+.lval{text-align:right;font-family:var(--font-num);font-size:13px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.lval .frac{display:block;font-size:11px;color:var(--ink-3)}
+.lrow.free .lname{color:var(--ink-2);font-style:italic}
+
+/* ---------- table ---------- */
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:600px;font-variant-numeric:tabular-nums}
+th,td{text-align:right;padding:9px 14px;border-bottom:1px solid var(--line);font-size:13px}
+th:first-child,td:first-child{text-align:left}
+thead th{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:600;border-bottom:1px solid var(--line-strong);white-space:nowrap}
+tbody td{font-family:var(--font-num)}
+tbody td:first-child{font-family:var(--font-ui)}
+.heir{display:flex;align-items:center;gap:9px}
+.heir .who{display:flex;flex-direction:column;line-height:1.25}
+.heir .role{font-size:11px;color:var(--ink-3)}
+tfoot td{font-weight:600;border-bottom:0;border-top:1px solid var(--line-strong);background:var(--surface-2)}
+.delta.up{color:var(--s-ilc)}
+.delta.down{color:var(--seal)}
+tr.freerow td{color:var(--ink-2);font-style:italic}
+
+/* ---------- notes ---------- */
+.notes{display:grid;grid-template-columns:1fr 1fr}
+@media (max-width:680px){.notes{grid-template-columns:1fr}}
+.note{padding:14px 16px;border-right:1px solid var(--line)}
+.note:last-child{border-right:0}
+.note h3{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin:0 0 7px;font-weight:600}
+.note p{margin:0 0 7px;font-size:12.5px;color:var(--ink-2);line-height:1.5}
+.note p:last-child{margin-bottom:0}
+.art{font-family:var(--font-ui);font-style:italic;font-weight:600;color:var(--ink);font-size:12.5px}
+.flag{display:flex;gap:9px;align-items:flex-start;background:var(--seal-soft);border-left:3px solid var(--seal);padding:10px 14px;font-size:12.5px;color:var(--ink);line-height:1.45;border-radius:3px}
+.flag b{color:var(--seal)}
+
+/* ---------- liquidity ---------- */
+.liqbody{padding:16px;display:flex;flex-direction:column;gap:14px}
+.costrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.costrow label{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-2);font-weight:600}
+.costrow input{width:150px}
+.lbar{position:relative;display:flex;height:40px;border-radius:4px;background:var(--surface-2);margin-bottom:16px}
+.lbar .seg{display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:600;font-family:var(--font-num);min-width:0;overflow:hidden}
+.lbar .seg.liq{background:var(--liq);color:#fff;border-radius:4px 0 0 4px}
+.lbar .seg.ill{background:var(--illiq);color:#0b1a2c;border-radius:0 4px 4px 0}
+.lbar .seg:only-child{border-radius:4px}
+.lbar .need{position:absolute;top:-5px;bottom:-5px;width:2px;background:var(--seal)}
+.lbar .need i{position:absolute;left:5px;bottom:-16px;font-style:normal;font-size:10px;font-weight:600;color:var(--seal);white-space:nowrap}
+.lkey{display:flex;flex-wrap:wrap;gap:8px 22px}
+.lkey .k{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink-2)}
+.lkey .k b{font-family:var(--font-num);font-weight:600;color:var(--ink)}
+.liqsay{margin:0;font-size:13px;color:var(--ink-2);line-height:1.6;max-width:72ch}
+.liqsay b{color:var(--ink);font-weight:600}
+
+/* ---------- bequests ---------- */
+.bqrow{display:grid;grid-template-columns:minmax(150px,1.6fr) minmax(116px,.85fr) minmax(118px,.8fr) minmax(150px,1.05fr);gap:10px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line)}
+.bqrow:last-child{border-bottom:0}
+.bqrow.head{border-bottom:1px solid var(--line-strong);padding-bottom:8px}
+.bqrow.head span{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
+.bqrow.head span.r{text-align:right}
+.bqrow .pn{font-size:13.5px;line-height:1.3}
+.bqrow .pn small{display:block;font-size:11.5px;color:var(--ink-3)}
+.bqrow .ev{font-family:var(--font-num);font-variant-numeric:tabular-nums;text-align:right;font-size:13.5px}
+.bqrow .ev small{display:block;font-size:10.5px;color:var(--ink-3);font-family:var(--font-ui)}
+@media (max-width:720px){
+  .bqrow{grid-template-columns:1fr 1fr;gap:8px 10px;padding:12px 0}
+  .bqrow.head{display:none}
+  .bqrow .pn{grid-column:1 / -1}
+  .bqrow .ev{text-align:left}
+}
+
+.freebox{margin-top:16px;padding-top:14px;border-top:1px solid var(--line-strong);display:flex;flex-direction:column;gap:10px}
+.freepick{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.freepick label{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-2);font-weight:600}
+.freepick select{width:auto;min-width:230px;max-width:100%}
+
+/* ---------- heir bars ---------- */
+.hbars{padding:2px 16px 16px;display:flex;flex-direction:column;gap:10px}
+.hbrow{display:grid;grid-template-columns:minmax(88px,132px) 1fr minmax(94px,auto);gap:12px;align-items:center}
+.hbname{font-size:12.5px;line-height:1.22;min-width:0}
+.hbname small{display:block;font-size:10.5px;color:var(--ink-3)}
+.hbar{position:relative;display:flex;height:20px;background:var(--surface-2);border-radius:3px}
+.hbar .seg{height:100%}
+.hbar .seg.cash{background:var(--liq);border-radius:3px 0 0 3px}
+.hbar .seg.prop{background:var(--illiq)}
+.hbar .seg.ins{background:var(--ins);border-radius:0 3px 3px 0}
+.hbar .tick{position:absolute;top:-5px;bottom:-5px;width:2px;background:var(--ink);opacity:.6}
+.hbval{font-family:var(--font-num);font-size:12.5px;text-align:right;font-variant-numeric:tabular-nums}
+.hbnote{padding:0 16px 14px;font-size:11.5px;color:var(--ink-3);display:flex;gap:16px;flex-wrap:wrap}
+.hbnote span{display:flex;align-items:center;gap:7px}
+
+/* ---------- insurance ---------- */
+.insure{border-top:1px solid var(--line);padding:16px;display:grid;grid-template-columns:minmax(210px,.85fr) 1.6fr;gap:22px}
+@media (max-width:720px){.insure{grid-template-columns:1fr}}
+.insure .cap{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:600;display:block;margin-bottom:4px}
+.bignum{font-family:var(--font-num);font-size:clamp(26px,4.6vw,33px);font-weight:600;color:var(--ink);line-height:1.04;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.insure .why{font-size:12px;color:var(--ink-2);line-height:1.5;margin-top:10px}
+.ins-left,.ins-right{min-width:0}
+.covwrap{display:flex;align-items:baseline;gap:2px;margin-top:2px}
+.covwrap .cur{font-family:var(--font-num);font-size:clamp(22px,3.8vw,28px);font-weight:600;color:var(--ink);letter-spacing:-.03em}
+.bignum-in{
+  font-family:var(--font-num);font-size:clamp(26px,4.6vw,33px);font-weight:600;color:var(--ink);
+  letter-spacing:-.03em;font-variant-numeric:tabular-nums;line-height:1.04;
+  background:transparent;border:1px solid transparent;border-radius:5px;
+  padding:1px 6px;width:100%;max-width:260px;text-align:left;
+}
+.bignum-in:hover{border-color:var(--line)}
+.bignum-in:focus{border-color:var(--accent);background:var(--surface)}
+.covstatus{font-size:12px;line-height:1.45;margin-top:6px;display:flex;flex-wrap:wrap;gap:4px 8px;align-items:baseline}
+.covstatus b{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+.covstatus .under{color:var(--seal);font-weight:600}
+.covstatus .over{color:var(--s-ilc);font-weight:600}
+.covstatus .exact{color:var(--ink-2)}
+.covstatus button{
+  font:inherit;font-size:11.5px;background:none;border:0;padding:0;color:var(--accent);
+  cursor:pointer;text-decoration:underline;text-underline-offset:2px;
+}
+.meter{height:6px;border-radius:3px;background:var(--surface-2);margin-top:9px;max-width:270px;overflow:hidden}
+.meter .fill{height:100%;background:var(--ins);border-radius:3px;transition:width .15s ease}
+.meter.full .fill{background:var(--liq)}
+.insure li .pc{color:var(--ink-3);font-size:11.5px;font-family:var(--font-num);margin-left:8px}
+.insure ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column}
+.insure li{display:flex;justify-content:space-between;gap:14px;font-size:13px;border-bottom:1px solid var(--line);padding:7px 0}
+.insure li:last-child{border-bottom:0}
+.insure li .n{font-family:var(--font-num);font-variant-numeric:tabular-nums;white-space:nowrap}
+.insure li.tot{font-weight:600;border-top:1px solid var(--line-strong);border-bottom:0}
+.zero{padding:16px;font-size:13px;color:var(--ink-2);line-height:1.6;max-width:70ch}
+
+/* ---------- tax ledger ---------- */
+.taxwrap{display:grid;grid-template-columns:1.45fr 1fr;gap:0}
+@media (max-width:760px){.taxwrap{grid-template-columns:1fr}}
+.ledger{padding:16px;border-right:1px solid var(--line)}
+@media (max-width:760px){.ledger{border-right:0;border-bottom:1px solid var(--line)}}
+.lrow2{display:flex;justify-content:space-between;gap:14px;padding:6px 0;font-size:13px;align-items:baseline}
+.lrow2 .n{font-family:var(--font-num);font-variant-numeric:tabular-nums;white-space:nowrap}
+.lrow2.sub{color:var(--ink-2);padding-left:16px;font-size:12.5px}
+.lrow2.sub .n:before{content:"−";margin-right:3px;color:var(--ink-3)}
+.lrow2.rule{border-top:1px solid var(--line-strong);margin-top:5px;padding-top:9px;font-weight:600}
+.lrow2.big{border-top:2px solid var(--ink);margin-top:7px;padding-top:11px;font-weight:600;font-size:14px}
+.lrow2 small{display:block;font-size:11px;color:var(--ink-3);font-weight:400;line-height:1.35}
+.taxside{padding:16px;display:flex;flex-direction:column;gap:14px;background:var(--surface-2)}
+.taxside .cap{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:600;display:block;margin-bottom:3px}
+.taxside .note{font-size:12px;color:var(--ink-2);line-height:1.5}
+.taxside .note b{color:var(--ink)}
+.lateflag{background:var(--seal-soft);border-left:3px solid var(--seal);padding:9px 12px;font-size:12px;line-height:1.45;border-radius:3px}
+.lateflag b{color:var(--seal)}
+.optrow{display:flex;gap:14px 18px;flex-wrap:wrap;align-items:flex-end;padding:12px 16px;border-top:1px solid var(--line);background:var(--surface-2)}
+.optcell{display:flex;flex-direction:column;gap:4px}
+.optcell label{font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-2);font-weight:600}
+.optcell input,.optcell select{width:118px}
+.optcell.wide select{width:216px}
+.optcell .u{font-size:11px;color:var(--ink-3);max-width:170px;line-height:1.35}
+.optrow.train .preonly{display:none}
+
+/* ---------- route comparison ---------- */
+.routes{width:100%;border-collapse:collapse;min-width:520px}
+.routes th,.routes td{padding:9px 14px;font-size:13px;border-bottom:1px solid var(--line);text-align:right}
+.routes th:first-child,.routes td:first-child{text-align:left}
+.routes thead th{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:600;border-bottom:1px solid var(--line-strong)}
+.routes td:not(:first-child){font-family:var(--font-num);font-variant-numeric:tabular-nums}
+.routes td small{display:block;font-size:11px;color:var(--ink-3);font-family:var(--font-ui)}
+.routes .pick{background:var(--accent-soft)}
+.routes tfoot td{font-weight:600;border-top:1px solid var(--line-strong);border-bottom:0}
+.routes .saving td{color:var(--ink-2);font-size:12px;border-bottom:0}
+.routes .saving td:not(:first-child){font-family:var(--font-ui);text-align:left;line-height:1.5}
+
+/* ---------- waivers ---------- */
+.waivebody{padding:16px;display:flex;flex-direction:column;gap:14px}
+.wgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px 18px}
+.wcard{border:1px solid var(--line);border-radius:5px;padding:11px 13px;display:flex;flex-direction:column;gap:7px}
+.wcard.acting{border-color:var(--seal);background:var(--seal-soft)}
+.wcard .top{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.wcard .nm{font-size:13.5px;font-weight:500}
+.wcard .nm small{display:block;font-size:11px;color:var(--ink-3);font-weight:400}
+.wcard .amt{font-family:var(--font-num);font-size:13px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.wcard .owe{font-size:11.5px;color:var(--ink-2);line-height:1.4}
+.wcard .owe b{color:var(--seal);font-family:var(--font-num)}
+footer{font-size:11.5px;color:var(--ink-3);line-height:1.5;border-top:1px solid var(--line);padding-top:12px}
+.hidden{display:none !important}
+
+@media (prefers-reduced-motion:reduce){*{transition:none !important}}
+@media print{
+  @page{margin:12mm 10mm}
+  body{background:#fff;font-size:10.5px}
+  .wrap{padding:0;max-width:none;gap:10px}
+  .appbar{padding:0 0 8px;border-bottom-width:1.5px}
+  .panel{box-shadow:none;border-color:#c9cdd5;break-inside:avoid}
+  .no-print{display:none !important}
+  button.kill,button.add,button.ghost{display:none !important}
+
+  /* form controls read as plain text on paper */
+  input[type=text],input[type=date],select,.prep input{
+    border-color:transparent !important;background:transparent !important;
+    padding-left:0 !important;padding-right:0 !important;-webkit-appearance:none;appearance:none;
+  }
+  select{background-image:none !important}
+  .check input{display:none}
+
+  /* one subject per sheet — nothing splits across a page break */
+  .pbreak{break-before:page}
+  .panel-head h2{font-size:14px}
+  .masthead h1{font-size:22px}
+  .tiles{grid-template-columns:repeat(4,1fr)}
+  .facts{grid-template-columns:1fr 1fr}
+  table{min-width:0}
+  th,td{padding:5px 8px;font-size:10px}
+  .chartwrap{padding:10px 8px 2px}
+  .chartwrap svg{max-width:180px}
+  .legend,.people,.sched,.liqbody,.waivebody,.insure,.derive .cell2,.note{padding:10px 12px}
+  .lrow,.lrow2{padding:4px 0}
+  .hbars{padding:0 12px 10px}
+  tr,.prow,.bqrow,.hbrow,.lrow,.wcard{break-inside:avoid}
+  .tip,.meter{display:none !important}
+  .results{gap:10px}
+
+  /* the narrow-screen stacks must not fire on paper */
+  .print-only{display:block}
+  .sumpies{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--line)}
+  .sumpies .sumpie:first-child{border-right:1px solid var(--line)}
+  .sumpies .chartwrap svg{max-width:150px}
+  .sumpies .legend{padding:2px 12px 10px}
+  .sumpies .lval .frac{font-size:9px}
+
+  /* control strips and operator instructions are not client content */
+  .optrow{display:none !important}
+  .masthead .sub{display:none}
+  .hint{display:none}
+  .sched-foot .hint{display:block}
+  footer{break-inside:avoid;font-size:9px;padding-top:8px}
+  .prow.head,.bqrow.head{display:grid}
+  .prow{grid-template-columns:1.15fr .7fr .55fr 1.3fr .85fr 20px;border-bottom:0;padding:3px 0}
+  .prow .cell:first-child{grid-column:auto}
+  .prow .cell .mini{display:none}
+  .prow button.kill{position:static;display:none}
+  .ptot{grid-template-columns:1.5fr 1fr 1fr 1fr 20px}
+  .bqrow{grid-template-columns:1.6fr .85fr .8fr 1.05fr;padding:4px 0}
+  .bqrow .ev{text-align:right}
+  .results{grid-template-columns:1fr 1fr}
+  .notes{grid-template-columns:1fr 1fr}
+  .insure{grid-template-columns:.8fr 1.5fr}
+  .wgrid{grid-template-columns:repeat(3,1fr)}
+  .people{grid-template-columns:repeat(3,1fr)}
+  .derive{grid-template-columns:repeat(3,1fr)}
+  .sched.no-spouse .prow{grid-template-columns:2fr 1fr 20px}
+  .sched.no-spouse .ptot{grid-template-columns:2fr 1fr 20px}
+}
+
+/* ---------- optional cloud bar (only rendered when config.js is filled in) ---------- */
+.cloudbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;width:100%;margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
+.cloudbar input,.cloudbar select{width:auto;min-width:170px}
+.cloudbar button{white-space:nowrap}
+</style>
 </head>
 <body>
 <header class="appbar">
@@ -334,6 +829,1492 @@
   </footer>
 
 </div>
-<script type="module" src="./src/main.js"></script>
+<script>
+// Built from src/ by build.mjs — edit the modules, not this file.
+(function(){
+"use strict";
+
+// ---------- config.js ----------
+// Optional cloud storage for saved client cases.
+//
+// Leave these null and the calculator runs exactly as it does offline: everything
+// stays in the browser, no account, nothing sent anywhere. That is the default.
+//
+// To turn on saved cases, create a Supabase project, run
+// supabase/migrations/0001_init.sql in its SQL editor, then paste the two values
+// from Project Settings -> API below.
+//
+// The anon key is designed to be public — row-level security is what protects the
+// data, which is why the migration turns RLS on before anything else.
+const SUPABASE_URL = null;      // e.g. "https://abcdefgh.supabase.co"
+const SUPABASE_ANON_KEY = null; // e.g. "eyJhbGciOi..."
+
+// ---------- src/state.js ----------
+// Generated from the single-file prototype. Behaviour is identical; see test/engine.test.mjs.
+
+const S = {
+  client:"Juan Dela Cruz",
+  spouse:true, spouseName:"Maria Dela Cruz", date:"1985-02-14", prenup:"none",
+  debts:0, debtOn:"conjugal", otherCash:0, freeTo:"prorata",
+  coverMode:"auto", coverAmount:0,
+  citizen:"resident", familyHome:3, monthsLate:0, route:"ejs",
+  deathDate:"", funeral:0, medical:0, judicial:0,
+  rTransfer:0.75, rReg:0.5, rNotarial:1.5, rExecutor:5, pub:10000,
+  waive:{},
+  props:[
+    {name:"Quezon City",        note:"House and lot",         value:10000000, owner:"client", acq:"before",     liq:"realty", to:"lc:1"},
+    {name:"Marikina",           note:"Townhouse",             value:3000000,  owner:"client", acq:"before",     liq:"realty", to:"residue"},
+    {name:"Taguig",             note:"Condominium unit",      value:5000000,  owner:"both",   acq:"onerous",    liq:"realty", to:"residue"},
+    {name:"Makati Family Home", note:"Family home",           value:9000000,  owner:"both",   acq:"onerous",    liq:"realty", to:"residue"},
+    {name:"Bulacan Farmland",   note:"Inherited from mother", value:4000000,  owner:"spouse", acq:"gratuitous", liq:"realty", to:"residue"},
+    {name:"Joint Bank Account", note:"Savings",               value:2000000,  owner:"both",   acq:"onerous",    liq:"liquid",   to:"residue"},
+    {name:"Philequity Fund",    note:"Mutual fund",           value:1500000,  owner:"both",   acq:"onerous",    liq:"liquid",   to:"residue"}
+  ],
+  lc:["Juan Jr.","Ana Marie","Miguel"],
+  ilc:["Carlo","Beatriz"],
+  lp:[]
+};
+
+const CUT = Date.UTC(1988,7,3);
+const $ = function(id){ return document.getElementById(id); };
+
+const ACQ = {
+  before:"Before the marriage",
+  onerous:"During — bought or earned",
+  gratuitous:"During — inherited or gifted",
+  fruits:"Fruits of exclusive property"
+};
+
+// ---------- src/format.js ----------
+// Generated from the single-file prototype. Behaviour is identical; see test/engine.test.mjs.
+
+
+/* ---------- formatting ---------- */
+var peso = function(n){ return "₱" + Math.round(n).toLocaleString("en-PH"); };
+var pct = function(p){
+  if (p === 0) return "0%";
+  if (Math.abs(p - Math.round(p)) < 1e-9) return Math.round(p) + "%";
+  var d = (p < 10 && Math.abs(p*10 - Math.round(p*10)) > 1e-9) ? 2 : 1;
+  return p.toFixed(d).replace(/0+$/,"").replace(/\.$/,"") + "%";
+};
+var frac = function(x){
+  if (x <= 0) return null;
+  for (var d = 1; d <= 240; d++){
+    var n = Math.round(x*d);
+    if (n >= 1 && Math.abs(x - n/d) < 1e-9) return d === 1 ? "all" : n + "/" + d;
+  }
+  return null;
+};
+var parseMoney = function(v){ var n = parseFloat(String(v).replace(/[^0-9.]/g,"")); return isFinite(n) && n > 0 ? n : 0; };
+var commafy = function(n){ return n ? n.toLocaleString("en-PH") : ""; };
+var esc = function(s){ return String(s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); };
+
+var client = function(){ return S.client.trim() || "the client"; };
+var spouseWho = function(){ return S.spouseName.trim() || "the spouse"; };
+var firstName = function(s){ return (s.trim().split(/\s+/)[0]) || s; };
+var heirName = function(key, i){
+  if (key === "ss") return spouseWho();
+  var n = ((S[key] || [])[i] || "").trim();
+  if (n) return n;
+  return key === "lc" ? "Legitimate child " + (i+1) : key === "ilc" ? "Illegitimate child " + (i+1) : "Parent " + (i+1);
+};
+var ROLE = { lc:"Legitimate child", ilc:"Illegitimate child", lp:"Parent", ss:"Spouse" };
+
+// ---------- src/engine/regime.js ----------
+// Generated from the single-file prototype. Behaviour is identical; see test/engine.test.mjs.
+
+
+/* ---------- regime + classification ---------- */
+function regime(){
+  if (!S.spouse) return "none";
+  if (S.prenup !== "none") return S.prenup;
+  var d = Date.parse(S.date);
+  return (isNaN(d) || d >= CUT) ? "acp" : "cpg";
+}
+var REGIME_NAME = { acp:"Absolute Community of Property", cpg:"Conjugal Partnership of Gains", sep:"Complete Separation of Property" };
+
+// "shared" -> the conjugal / community pot; "exclusive" -> stays with its owner
+function classify(p, reg){
+  if (reg === "sep") return "exclusive";
+  if (reg === "cpg"){
+    // Owned before the marriage stays exclusive — but the fruits and income of
+    // exclusive property belong to the partnership (Family Code, Art. 117).
+    if (p.acq === "onerous" || p.acq === "fruits") return "shared";
+    return "exclusive";
+  }
+  // Absolute community: everything brought into the marriage joins the pot.
+  // Only gratuitous-title property and its fruits stay out (Family Code, Art. 92).
+  if (p.acq === "gratuitous" || p.acq === "fruits") return "exclusive";
+  return "shared";
+}
+
+function bucket(p, reg){
+  if (!S.spouse) return { conj:0, exd:p.value, exs:0, cls:"exclusive" };
+  var cls = classify(p, reg);
+  if (cls === "shared") return { conj:p.value, exd:0, exs:0, cls:cls };
+  if (p.owner === "client") return { conj:0, exd:p.value, exs:0, cls:cls };
+  if (p.owner === "spouse") return { conj:0, exd:0, exs:p.value, cls:cls };
+  return { conj:0, exd:p.value/2, exs:p.value/2, cls:cls };
+}
+
+function totals(){
+  var reg = regime(), t = {conj:0, exd:0, exs:0};
+  S.props.forEach(function(p){ var b = bucket(p, reg); t.conj += b.conj; t.exd += b.exd; t.exs += b.exs; });
+  return t;
+}
+
+// Whose obligation is it? A conjugal charge comes out of the shared pot and so
+// halves the spouse's share with it; the client's own debt does not touch her.
+function debtSplit(t){
+  var d = S.debts;
+  if (!S.spouse) return { conj:0, exd:Math.min(d, t.exd + t.conj + t.exs) };
+  if (S.debtOn === "exclusive"){
+    var fromExd = Math.min(d, t.exd);
+    return { exd:fromExd, conj:Math.min(d - fromExd, t.conj) };
+  }
+  var fromConj = Math.min(d, t.conj);
+  return { conj:fromConj, exd:Math.min(d - fromConj, t.exd) };
+}
+
+function liquidate(){
+  var t = totals(), debt = S.debts;
+  if (!S.spouse){
+    var pot = t.conj + t.exd + t.exs;
+    return { conj:0, exd:pot, exs:0, netConj:0, netExd:Math.max(pot-debt,0),
+             spouseOwn:0, estate:Math.max(pot-debt,0), debtPaid:Math.min(debt,pot),
+             dConj:0, dExd:Math.min(debt,pot) };
+  }
+  var D = debtSplit(t);
+  var netConj = t.conj - D.conj;
+  var netExd = Math.max(t.exd - D.exd, 0);
+  return { conj:t.conj, exd:t.exd, exs:t.exs, netConj:netConj, netExd:netExd,
+           spouseOwn:netConj/2 + t.exs, estate:netConj/2 + netExd,
+           debtPaid:Math.min(debt, t.conj + t.exd), dConj:D.conj, dExd:D.exd };
+}
+
+// ---------- src/engine/succession.js ----------
+// Generated from the single-file prototype. Behaviour is identical; see test/engine.test.mjs.
+
+
+
+/* ---------- succession engine ---------- */
+function testate(E){
+  var n = S.lc.length, m = S.ilc.length, sp = S.spouse, lp = S.lp.length;
+  var g = [], notes = [], cap = null;
+  var lcTotal=0, ssShare=0, ilcTotal=0, lpTotal=0, free=0;
+
+  if (n > 0){
+    lcTotal = E/2;
+    notes.push(["Art. 888", "The " + n + " legitimate child" + (n>1?"ren":"") + " take one half of the estate, divided equally."]);
+    var one = E/(2*n);
+    if (sp){
+      ssShare = (n === 1) ? E/4 : one;
+      notes.push(["Art. 892", n === 1
+        ? "With a single legitimate child, " + firstName(spouseWho()) + "'s legitime is one fourth of the estate."
+        : "With two or more legitimate children, " + firstName(spouseWho()) + " takes a share equal to the legitime of one child."]);
+    }
+    if (m > 0){
+      ilcTotal = m*one/2;
+      notes.push(["Art. 895 · F.C. 176", "Each illegitimate child takes one half of the legitime of one legitimate child."]);
+    }
+    var half = E/2, room = half - ssShare;
+    if (ilcTotal > room + 1e-6){
+      ilcTotal = Math.max(room, 0);
+      cap = "The free half cannot cover every illegitimate child's full legitime. " + firstName(spouseWho())
+          + " is satisfied first, then the illegitimate children share what remains, reduced pro rata.";
+    }
+    free = Math.max(half - ssShare - ilcTotal, 0);
+  } else if (lp > 0){
+    lpTotal = E/2;
+    notes.push(["Art. 889", "With no legitimate children, the legitimate parents take one half of the estate."]);
+    if (sp && m > 0){ ssShare = E/8; ilcTotal = E/4;
+      notes.push(["Art. 899", "Parents one half, spouse one eighth, illegitimate children one fourth — one eighth stays free."]);
+    } else if (sp){ ssShare = E/4;
+      notes.push(["Art. 893", "The spouse concurring with legitimate ascendants takes one fourth."]);
+    } else if (m > 0){ ilcTotal = E/4;
+      notes.push(["Art. 896", "Illegitimate children concurring with legitimate ascendants take one fourth."]);
+    }
+    free = E - lpTotal - ssShare - ilcTotal;
+  } else {
+    if (sp && m > 0){ ssShare = E/3; ilcTotal = E/3;
+      notes.push(["Art. 894", "Spouse one third, illegitimate children one third, free portion one third."]);
+    } else if (sp){ ssShare = E/2;
+      notes.push(["Art. 900", "The spouse alone takes one half as legitime."]);
+    } else if (m > 0){ ilcTotal = E/2;
+      notes.push(["Art. 901", "Illegitimate children alone take one half as legitime."]);
+    } else {
+      notes.push(["No compulsory heirs", "The whole estate is free — " + client() + " may give it to anyone qualified to receive it."]);
+    }
+    free = E - ssShare - ilcTotal;
+  }
+
+  if (n > 0) g.push({key:"lc", label:"Legitimate children", count:n, total:lcTotal});
+  if (lp > 0) g.push({key:"lp", label:"Parents", count:lp, total:lpTotal});
+  if (sp) g.push({key:"ss", label:spouseWho(), count:1, total:ssShare});
+  if (m > 0) g.push({key:"ilc", label:"Illegitimate children", count:m, total:ilcTotal});
+  g.forEach(function(x){ x.each = x.count ? x.total/x.count : 0; });
+  return { groups:g, free:Math.max(free,0), notes:notes, cap:cap };
+}
+
+function intestate(E){
+  var n = S.lc.length, m = S.ilc.length, sp = S.spouse, lp = S.lp.length;
+  var g = [], notes = [], cap = null;
+  var lcTotal=0, ssShare=0, ilcTotal=0, lpTotal=0;
+
+  if (n > 0){
+    var units = n + (sp?1:0) + m*0.5, vu = E/units;
+    lcTotal = n*vu; ssShare = sp ? vu : 0; ilcTotal = m*0.5*vu;
+    notes.push(["Art. 979 · 996 · 983", "Each legitimate child counts one unit, the spouse one unit, each illegitimate child half a unit. "
+      + String(units).replace(/\.0$/,"") + " units in all, at " + peso(vu) + " per unit."]);
+    if (lcTotal < E/2 - 1e-6){
+      var ssLegit = sp ? ((n === 1) ? E/4 : E/(2*n)) : 0;
+      lcTotal = E/2; ssShare = ssLegit; ilcTotal = E - lcTotal - ssShare;
+      cap = "The unit method would cut the legitimate children below the one half the law reserves them. Their legitime is restored first, the spouse is paid next, and the illegitimate children divide what is left.";
+      notes.push(["Art. 895", "Illegitimate shares reduced so the legitimate children keep their reserved one half."]);
+    }
+  } else if (lp > 0){
+    lpTotal = E/2;
+    if (sp && m > 0){ ssShare = E/4; ilcTotal = E/4;
+      notes.push(["Art. 1000", "Legitimate parents one half, spouse one fourth, illegitimate children one fourth."]);
+    } else if (sp){ ssShare = E/2;
+      notes.push(["Art. 997", "Legitimate parents and the spouse divide the estate half and half."]);
+    } else if (m > 0){ ilcTotal = E/2;
+      notes.push(["Art. 991", "Legitimate ascendants and illegitimate children divide the estate half and half."]);
+    } else { lpTotal = E;
+      notes.push(["Art. 985", "With no other heirs, the legitimate parents take the whole estate."]);
+    }
+  } else {
+    if (sp && m > 0){ ssShare = E/2; ilcTotal = E/2;
+      notes.push(["Art. 998", "The spouse and the illegitimate children divide the estate half and half."]);
+    } else if (sp){ ssShare = E;
+      notes.push(["Art. 994", "The spouse takes the whole estate, subject to the rights of any surviving brothers and sisters."]);
+    } else if (m > 0){ ilcTotal = E;
+      notes.push(["Art. 988", "The illegitimate children take the whole estate, divided equally."]);
+    } else {
+      notes.push(["No legal heirs listed", "The estate passes to collateral relatives, and failing those, to the State."]);
+    }
+  }
+
+  if (n > 0) g.push({key:"lc", label:"Legitimate children", count:n, total:lcTotal});
+  if (lp > 0) g.push({key:"lp", label:"Parents", count:lp, total:lpTotal});
+  if (sp) g.push({key:"ss", label:spouseWho(), count:1, total:ssShare});
+  if (m > 0) g.push({key:"ilc", label:"Illegitimate children", count:m, total:ilcTotal});
+  g.forEach(function(x){ x.each = x.count ? x.total/x.count : 0; });
+
+  notes.push(["No free portion", "Intestacy allocates the entire estate by law. Nothing is left to discretion."]);
+  return { groups:g, free:0, notes:notes, cap:cap };
+}
+
+// ---------- src/engine/assets.js ----------
+// Generated from the single-file prototype. Behaviour is identical; see test/engine.test.mjs.
+
+
+
+
+// What the estate actually owns of each property: the client's exclusive
+// share in full, plus half of anything in the conjugal / community pot.
+function estateRows(reg){
+  return S.props.map(function(p,i){
+    var b = bucket(p, reg);
+    var kind = p.liq || "realty";
+    if (kind === "illiquid") kind = "realty";
+    return { i:i, name:p.name, note:p.note, whole:p.value, kind:kind,
+             liq: kind === "liquid", to:p.to || "residue",
+             est: b.exd + b.conj/2 };
+  }).filter(function(r){ return r.est > 0.005; });
+}
+
+function roster(t){
+  var out = [];
+  ["lc","lp","ss","ilc"].forEach(function(k){
+    var g = null;
+    for (var j=0;j<t.groups.length;j++) if (t.groups[j].key === k) g = t.groups[j];
+    if (!g) return;
+    for (var x=0;x<g.count;x++)
+      out.push({ id:k+":"+x, key:k, name:heirName(k,x), role:ROLE[k], legitime:g.each });
+  });
+  return out;
+}
+
+// ---------- src/engine/tax.js ----------
+// Generated from the single-file prototype. Behaviour is identical; see test/engine.test.mjs.
+
+
+
+
+/* ---------- estate tax, settlement costs, donor's tax ---------- */
+var STD_DEDUCTION = 5000000, FH_CAP = 10000000, DONOR_EXEMPT = 250000;
+var TRAIN_START = Date.UTC(2018,0,1);
+
+// Pre-TRAIN allowances (deaths before 1 January 2018)
+var OLD_STD = 1000000, OLD_FH_CAP = 1000000, OLD_MEDICAL_CAP = 500000, OLD_FUNERAL_CAP = 200000;
+
+function taxRegime(){
+  var d = Date.parse(S.deathDate);
+  return (isNaN(d) || d >= TRAIN_START) ? "train" : "pre";
+}
+
+// The old graduated table, Sec. 84 of the NIRC before RA 10963
+function gradTax(net){
+  if (net <= 200000) return 0;
+  if (net <= 500000) return (net - 200000) * 0.05;
+  if (net <= 2000000) return 15000 + (net - 500000) * 0.08;
+  if (net <= 5000000) return 135000 + (net - 2000000) * 0.11;
+  if (net <= 10000000) return 465000 + (net - 5000000) * 0.15;
+  return 1215000 + (net - 10000000) * 0.20;
+}
+
+function dueDate(mode){
+  var d = Date.parse(S.deathDate);
+  if (isNaN(d)) return null;
+  var due = new Date(d);
+  due.setMonth(due.getMonth() + (mode === "train" ? 12 : 6));
+  return due;
+}
+
+function taxes(reg){
+  var t = totals();
+  // The gross estate is the client's exclusive property plus the WHOLE
+  // community / conjugal pot. The spouse's own exclusive property stays out.
+  var gross = t.exd + t.conj;
+
+  var D = debtSplit(t);
+  var netConj = t.conj - D.conj;
+  var spouseShare = S.spouse ? netConj/2 : 0;
+
+  // Family home: the CLIENT's interest in it, capped at 10M — not the whole house.
+  var fhRow = null, fhInterest = 0;
+  var rows = estateRows(reg);
+  rows.forEach(function(r){ if (r.i === S.familyHome){ fhRow = r; fhInterest = r.est; } });
+
+  var ordinary = Math.min(S.debts, gross);
+
+  // --- both rulebooks, so the difference can be shown ---
+  function run(mode){
+    var std, fh, extras = [], extraTotal = 0;
+    if (mode === "train"){
+      std = STD_DEDUCTION;
+      fh = Math.min(fhInterest, FH_CAP);
+    } else {
+      std = OLD_STD;
+      fh = Math.min(fhInterest, OLD_FH_CAP);
+      // funeral: actual, capped at 5% of the gross estate and at P200,000
+      var fun = Math.min(S.funeral, gross * 0.05, OLD_FUNERAL_CAP);
+      var med = Math.min(S.medical, OLD_MEDICAL_CAP);
+      var jud = S.judicial;
+      extras = [["Funeral expenses", fun, "Actual, capped at 5% of the gross estate and at ₱200,000"],
+                ["Judicial expenses", jud, "Settlement proceedings"],
+                ["Medical expenses", med, "Within one year of death, capped at ₱500,000"]];
+      extraTotal = fun + med + jud;
+    }
+    var net = Math.max(gross - ordinary - extraTotal - std - fh - spouseShare, 0);
+    var t = mode === "train" ? net * 0.06 : gradTax(net);
+    return { mode:mode, std:std, fh:fh, extras:extras, extraTotal:extraTotal, netTaxable:net, tax:t };
+  }
+
+  var mode = taxRegime();
+  var trainRun = run("train"), preRun = run("pre");
+  var active = mode === "train" ? trainRun : preRun;
+
+  var std = active.std, fhDed = active.fh;
+  var netTaxable = active.netTaxable, tax = active.tax;
+
+  var surcharge = 0, interest = 0;
+  if (S.monthsLate > 0){
+    surcharge = tax * 0.25;
+    interest = tax * 0.12 * (S.monthsLate/12);
+  }
+  var taxTotal = tax + surcharge + interest;
+
+  var realty = 0;
+  rows.forEach(function(r){ if (r.kind === "realty") realty += r.est; });
+
+  var transfer = realty * S.rTransfer/100;
+  var registration = realty * S.rReg/100;
+  var notarial = gross * S.rNotarial/100;
+  var executor = gross * S.rExecutor/100;
+
+  var ejs = taxTotal + notarial + S.pub + transfer + registration;
+  var jud = taxTotal + executor + S.pub + transfer + registration;
+
+  return { gross:gross, ordinary:ordinary, std:std, fhRow:fhRow,
+           mode:mode, active:active, trainRun:trainRun, preRun:preRun,
+           saved: preRun.tax - trainRun.tax, due:dueDate(mode),
+           fhInterest:fhInterest, fhDeduction:fhDed, spouseShare:spouseShare, exs:t.exs,
+           conj:t.conj, exd:t.exd, netConj:netConj, dConj:D.conj, dExd:D.exd,
+           spouseKeeps:spouseShare + t.exs,
+           netTaxable:netTaxable, tax:tax, surcharge:surcharge, interest:interest,
+           taxTotal:taxTotal, effective: gross > 0 ? tax/gross*100 : 0,
+           realty:realty, transfer:transfer, registration:registration,
+           notarial:notarial, executor:executor, pub:S.pub,
+           ejs:ejs, jud:jud, chosen: S.route === "ejs" ? ejs : jud };
+}
+
+// ---------- src/engine/plan.js ----------
+// Generated from the single-file prototype. Behaviour is identical; see test/engine.test.mjs.
+
+
+
+
+function plan(E, t, reg){
+  var rows = estateRows(reg), heirs = roster(t), byId = {};
+  heirs.forEach(function(h){ byId[h.id] = h; });
+
+  var T = 0, liqTotal = 0;
+  rows.forEach(function(r){ T += r.est; if (r.liq) liqTotal += r.est; });
+
+  var sumL = heirs.reduce(function(a,h){ return a + h.legitime; }, 0);
+  heirs.forEach(function(h){
+    // Fair share: what this heir would take if the free portion followed the
+    // legitimes instead of being singled out. The whole estate, no gifts.
+    h.base = sumL > 0 ? E * h.legitime/sumL : (heirs.length ? E/heirs.length : 0);
+    h.assigned = 0; h.assignedLiq = 0; h.gifts = [];
+  });
+
+  rows.forEach(function(r){
+    var h = byId[r.to];
+    if (h){ h.assigned += r.est; if (r.liq) h.assignedLiq += r.est; h.gifts.push(r.name || "Unnamed asset"); }
+    else r.to = "residue";
+  });
+
+  var assignedTotal = 0, assignedLiq = 0;
+  heirs.forEach(function(h){ assignedTotal += h.assigned; assignedLiq += h.assignedLiq; });
+
+  var residue = E - assignedTotal;
+  var over = residue < -0.5;
+  if (residue < 0) residue = 0;
+  var resLiq = Math.max(0, liqTotal - assignedLiq - S.debts);
+
+  // A gift is charged against the free portion FIRST, never against a
+  // co-heir's legitime (Arts. 909-911). So the residue tops every heir up to
+  // their legitime before a single peso of it counts as free.
+  var unmet = 0;
+  heirs.forEach(function(h){ h.unmet = Math.max(0, h.legitime - h.assigned); unmet += h.unmet; });
+  var freePool = 0;
+  if (residue >= unmet - 1e-6){
+    heirs.forEach(function(h){ h.fromLegitime = h.unmet; });
+    freePool = residue - unmet;
+  } else {
+    // genuinely not enough to go round — this is the impairment case
+    heirs.forEach(function(h){ h.fromLegitime = unmet > 0 ? residue * h.unmet/unmet : 0; });
+  }
+
+  // Whatever is left is the free portion, and the will says where it goes.
+  var freeTo = S.freeTo || "prorata", freeOutside = 0;
+  heirs.forEach(function(h){ h.fromFree = 0; });
+  if (freePool > 0.005){
+    if (freeTo === "outside") freeOutside = freePool;
+    else if (byId[freeTo]) byId[freeTo].fromFree = freePool;
+    else heirs.forEach(function(h){
+      h.fromFree = sumL > 0 ? freePool*h.legitime/sumL : (heirs.length ? freePool/heirs.length : 0);
+    });
+  }
+
+  heirs.forEach(function(h){
+    h.resShare = h.fromLegitime + h.fromFree;
+    h.receives = h.assigned + h.resShare;
+    h.cash = h.assignedLiq + (residue > 0 ? h.resShare * (resLiq/residue) : 0);
+    h.property = Math.max(h.receives - h.cash, 0);
+    h.gap = h.receives - h.base;
+    h.shortBase = Math.max(h.base - h.receives, 0);
+    h.shortLegitime = Math.max(h.legitime - h.receives, 0);
+    // the most this heir could ever take: their own floor plus the whole free portion
+    h.ceiling = h.legitime + (E - sumL);
+  });
+
+  // ---- an heir who refuses their share ----
+  // A waiver naming a specific person is a donation in the BIR's eyes.
+  // A plain repudiation, where the share simply accrues to the co-heirs, is not.
+  var donorsTax = 0, waivers = [];
+  heirs.forEach(function(h){
+    h.waive = S.waive[h.id] || "accept";
+    h.donorsTax = 0; h.gained = 0; h.gainedCash = 0; h.gave = 0;
+    h.wouldOwe = Math.max(0, h.receives - DONOR_EXEMPT) * 0.06;
+  });
+  heirs.forEach(function(d){
+    if (d.waive === "accept" || d.waive === "repudiate") return;
+    var r = byId[d.waive];
+    if (!r || r === d){ d.waive = "accept"; return; }
+    d.gave = d.receives;
+    r.gained += d.receives; r.gainedCash += d.cash;
+    d.donorsTax = Math.max(0, d.receives - DONOR_EXEMPT) * 0.06;
+    donorsTax += d.donorsTax;
+    waivers.push({ from:d, to:r, amount:d.receives, tax:d.donorsTax, targeted:true });
+    d.receives = 0; d.cash = 0;
+  });
+  var pool = 0, poolCash = 0;
+  heirs.forEach(function(d){
+    if (d.waive !== "repudiate") return;
+    d.gave = d.receives; pool += d.receives; poolCash += d.cash;
+    waivers.push({ from:d, to:null, amount:d.receives, tax:0, targeted:false });
+    d.receives = 0; d.cash = 0;
+  });
+  if (pool > 0){
+    var acc = heirs.filter(function(h){ return h.waive === "accept"; });
+    var accL = acc.reduce(function(a,h){ return a + h.legitime; }, 0);
+    acc.forEach(function(h){
+      var sh = accL > 0 ? pool*h.legitime/accL : (acc.length ? pool/acc.length : 0);
+      h.gained += sh; h.gainedCash += poolCash * (sh/pool);
+    });
+  }
+  heirs.forEach(function(h){
+    h.receives += h.gained; h.cash += h.gainedCash;
+    h.property = Math.max(h.receives - h.cash, 0);
+    h.gap = h.receives - h.base;
+    // someone who gave their share away is not "short" — they chose it
+    h.shortBase = h.waive === "accept" ? Math.max(h.base - h.receives, 0) : 0;
+    h.shortLegitime = h.waive === "accept" ? Math.max(h.legitime - h.receives, 0) : 0;
+  });
+
+  var X = taxes(reg);
+  var cashNeed = S.debts + X.chosen + donorsTax + S.otherCash;
+  var equalize = 0, impaired = 0, impairedCount = 0;
+  heirs.forEach(function(h){
+    equalize += h.shortBase; impaired += h.shortLegitime;
+    if (h.shortLegitime > 0.5) impairedCount++;
+  });
+  var liqShort = Math.max(cashNeed - liqTotal, 0);
+
+  return { rows:rows, heirs:heirs, T:T, liqTotal:liqTotal, illiqTotal:T-liqTotal,
+           assignedTotal:assignedTotal, residue:residue, over:over,
+           cashNeed:cashNeed, liqShort:liqShort, cashLeft:Math.max(liqTotal-cashNeed,0),
+           equalize:equalize, impaired:impaired, impairedCount:impairedCount,
+           coverage:equalize + liqShort, anyGift:assignedTotal > 0.5,
+           tax:X, donorsTax:donorsTax, waivers:waivers,
+           freePool:freePool, freeTo:freeTo, freeOutside:freeOutside, sumL:sumL, floorTotal:sumL };
+}
+
+// ---------- src/ui/charts.js ----------
+// Generated from the single-file prototype. Behaviour is identical; see test/engine.test.mjs.
+
+
+/* ---------- pie ---------- */
+var COLOR = { lc:"var(--s-lc)", ss:"var(--s-ss)", ilc:"var(--s-ilc)", lp:"var(--s-lp)", free:"var(--s-free)" };
+var HATCH = "repeating-linear-gradient(45deg,var(--s-free),var(--s-free) 2px,var(--s-free-line) 2px,var(--s-free-line) 4px)";
+
+function arc(cx,cy,r,a0,a1){
+  if (a1-a0 >= Math.PI*2 - 1e-6) return "M "+cx+" "+(cy-r)+" A "+r+" "+r+" 0 1 1 "+(cx-0.01)+" "+(cy-r)+" Z";
+  var big = (a1-a0) > Math.PI ? 1 : 0;
+  return "M "+cx+" "+cy
+    + " L "+(cx+r*Math.cos(a0)).toFixed(2)+" "+(cy+r*Math.sin(a0)).toFixed(2)
+    + " A "+r+" "+r+" 0 "+big+" 1 "+(cx+r*Math.cos(a1)).toFixed(2)+" "+(cy+r*Math.sin(a1)).toFixed(2)+" Z";
+}
+
+function drawPie(svg, tip, wrap, slices, E, uid){
+  var cx=120, cy=120, r=104, a=-Math.PI/2;
+  var live = slices.filter(function(s){ return s.total > 0.005; });
+  if (!live.length || E <= 0){
+    svg.innerHTML = '<circle cx="120" cy="120" r="104" fill="none" stroke="var(--line-strong)" stroke-width="1.5" stroke-dasharray="4 5"/>'
+      + '<text x="120" y="125" text-anchor="middle" fill="var(--ink-3)" font-size="12" font-family="IBM Plex Sans,sans-serif">Nothing to divide</text>';
+    return;
+  }
+  var parts = ['<defs><pattern id="hatch-'+uid+'" width="7" height="7" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">'
+    + '<rect width="7" height="7" fill="var(--s-free)"/><line x1="0" y1="0" x2="0" y2="7" stroke="var(--s-free-line)" stroke-width="2.5"/></pattern></defs>'];
+  var labels = [];
+  live.forEach(function(s,i){
+    var p = s.total/E, a1 = a + p*Math.PI*2;
+    parts.push('<path class="slice" data-i="'+i+'" d="'+arc(cx,cy,r,a,a1)+'" fill="'
+      + (s.key==="free" ? "url(#hatch-"+uid+")" : COLOR[s.key])
+      + '" stroke="var(--surface)" stroke-width="2" stroke-linejoin="round"></path>');
+    if (p >= 0.075){
+      var mid=(a+a1)/2, lr=r*0.62;
+      labels.push('<text class="slice-pct'+(s.key==="free"?" dark-text":"")+'" x="'+(cx+lr*Math.cos(mid)).toFixed(1)
+        + '" y="'+(cy+lr*Math.sin(mid)+4).toFixed(1)+'" text-anchor="middle">'+pct(p*100)+'</text>');
+    }
+    s._pct = p*100; s._mid = (a+a1)/2;
+    a = a1;
+  });
+  svg.innerHTML = parts.join("") + labels.join("");
+
+  Array.prototype.forEach.call(svg.querySelectorAll(".slice"), function(el){
+    el.addEventListener("mouseenter", function(){
+      var s = live[+el.dataset.i];
+      wrap.classList.add("hovering"); el.classList.add("on");
+      tip.innerHTML = esc(s.label) + (s.count>1 ? " ("+s.count+")" : "") + "<b>" + peso(s.total) + " · " + pct(s._pct) + "</b>";
+      var box = svg.getBoundingClientRect(), wbox = wrap.getBoundingClientRect();
+      tip.style.left = (box.left-wbox.left + box.width/2 + Math.cos(s._mid)*box.width*0.30) + "px";
+      tip.style.top  = (box.top-wbox.top + box.height/2 + Math.sin(s._mid)*box.height*0.30) + "px";
+      tip.style.opacity = 1;
+    });
+    el.addEventListener("mouseleave", function(){
+      wrap.classList.remove("hovering"); el.classList.remove("on"); tip.style.opacity = 0;
+    });
+  });
+}
+
+function slicesOf(res){
+  var out = res.groups.map(function(g){ return {key:g.key,label:g.label,count:g.count,total:g.total}; });
+  if (res.free > 0.005) out.push({key:"free",label:"Free portion",count:0,total:res.free});
+  return out;
+}
+
+// ---------- src/ui/render.js ----------
+// Generated from the single-file prototype. Behaviour is identical; see test/engine.test.mjs.
+
+
+
+
+
+
+
+
+function renderLegend(el, res, E){
+  var rows = slicesOf(res).map(function(s){
+    var f = E>0 ? frac(s.total/E) : null, names = "";
+    if (s.key === "lc" || s.key === "ilc" || s.key === "lp"){
+      names = S[s.key].map(function(_,i){ return heirName(s.key,i); }).join(", ")
+        + (s.count>1 ? " · " + peso(s.total/s.count) + " each" : "");
+    }
+    return '<div class="lrow'+(s.key==="free"?" free":"")+'">'
+      + '<span class="sw" style="background:'+(s.key==="free"?HATCH:COLOR[s.key])+'"></span>'
+      + '<span class="lname">'+esc(s.label)+(names?'<span class="per">'+esc(names)+'</span>':'')+'</span>'
+      + '<span class="lval">'+peso(s.total)+'<span class="frac">'+(E>0?pct(s.total/E*100):"—")+(f?' · '+f:'')+'</span></span>'
+      + '</div>';
+  }).join("");
+  el.innerHTML = rows || '<div class="lrow"><span></span><span class="lname">Nothing to distribute</span><span></span></div>';
+}
+
+function renderNotes(el, res){
+  el.innerHTML = res.notes.map(function(n){ return '<p><span class="art">'+n[0]+'</span> — '+esc(n[1])+'</p>'; }).join("");
+}
+
+function renderTable(t, i, E){
+  var find = function(res,k){ for (var j=0;j<res.groups.length;j++) if (res.groups[j].key===k) return res.groups[j]; return null; };
+  var rows = [];
+  ["lc","lp","ss","ilc"].forEach(function(k){
+    var a = find(t,k), b = find(i,k), g = a || b;
+    if (!g) return;
+    for (var x = 0; x < g.count; x++)
+      rows.push({key:k, name:heirName(k,x), role:ROLE[k], av:a?a.each:0, bv:b?b.each:0});
+  });
+
+  var body = rows.map(function(r){
+    var d = r.bv - r.av;
+    return '<tr><td><span class="heir"><span class="sw" style="background:'+COLOR[r.key]+'"></span>'
+      + '<span class="who">'+esc(r.name)+'<span class="role">'+r.role+'</span></span></span></td>'
+      + '<td>'+peso(r.av)+'</td><td>'+(E>0?pct(r.av/E*100):'—')+'</td>'
+      + '<td>'+peso(r.bv)+'</td><td>'+(E>0?pct(r.bv/E*100):'—')+'</td>'
+      + '<td class="delta '+(d>0.5?'up':(d<-0.5?'down':''))+'">'+(Math.abs(d)<0.5?'—':(d>0?'+':'−')+peso(Math.abs(d)))+'</td></tr>';
+  }).join("");
+
+  if (t.free > 0.005){
+    body += '<tr class="freerow"><td><span class="heir"><span class="sw" style="background:'+HATCH+'"></span>'
+      + '<span class="who">Free portion<span class="role">Assigned by the will</span></span></span></td>'
+      + '<td>'+peso(t.free)+'</td><td>'+pct(t.free/E*100)+'</td><td>₱0</td><td>0%</td>'
+      + '<td class="delta down">−'+peso(t.free)+'</td></tr>';
+  }
+  if (!body) body = '<tr><td colspan="6" style="text-align:center;color:var(--ink-3);font-style:italic">No heirs listed yet</td></tr>';
+
+  $("cmp-body").innerHTML = body;
+  $("cmp-foot").innerHTML = '<tr><td>Net distributable estate</td><td>'+peso(E)+'</td><td>100%</td><td>'+peso(E)+'</td><td>100%</td><td>—</td></tr>';
+}
+
+function renderDerive(L, reg){
+  var cells;
+  if (S.spouse){
+    var shareWord = reg === "cpg" ? "Conjugal" : reg === "sep" ? "Shared" : "Community";
+    cells = [
+      [shareWord + " property", peso(L.netConj), reg === "sep" ? "Nothing is shared under this settlement" : "Split down the middle"],
+      ["Exclusive to " + firstName(client()), peso(L.netExd), "Enters the estate in full"],
+      ["Exclusive to " + firstName(spouseWho()), peso(L.exs), "Never part of the estate"],
+      ["Debts", (L.debtPaid>0?"−":"") + peso(L.debtPaid),
+       L.debtPaid > 0 ? (L.dConj > 0.5 ? peso(L.dConj) + " from the shared pot" + (L.dExd > 0.5 ? ", " + peso(L.dExd) + " from " + firstName(client()) + "'s own" : "")
+                                       : "All from " + firstName(client()) + "'s own property")
+                      : "None entered"],
+      [firstName(spouseWho()) + " retains", peso(L.spouseOwn),
+       peso(L.netConj/2) + " conjugal half + " + peso(L.exs) + " her own — none of it inheritance"]
+    ];
+  } else {
+    cells = [
+      ["Property of " + firstName(client()), peso(L.exd + L.debtPaid), "No spouse — nothing to split"],
+      ["Debts", (L.debtPaid>0?"−":"") + peso(L.debtPaid), L.debtPaid>0 ? "Settled before any share" : "None entered"]
+    ];
+  }
+  $("derive").innerHTML = cells.map(function(c){
+    return '<div class="cell2"><span class="k">'+esc(c[0])+'</span><span class="v">'+c[1]+'</span><span class="n">'+esc(c[2])+'</span></div>';
+  }).join("")
+  + '<div class="cell2 net"><span class="k">Net distributable estate</span><span class="v">'+peso(L.estate)+'</span><span class="n">This is what gets distributed</span></div>';
+}
+
+/* ---------- schedule rows (rebuilt only on add / remove) ---------- */
+function renderPropRows(){
+  $("prop-rows").innerHTML = S.props.map(function(p,i){
+    var opts = Object.keys(ACQ).map(function(k){
+      return '<option value="'+k+'"'+(p.acq===k?" selected":"")+'>'+ACQ[k]+'</option>';
+    }).join("");
+    return '<div class="prow" data-i="'+i+'">'
+      + '<div class="cell">'
+        + '<input type="text" data-f="name" value="'+esc(p.name)+'" placeholder="Property" aria-label="Property name">'
+        + '<input type="text" data-f="note" value="'+esc(p.note)+'" placeholder="Description" aria-label="Description" style="font-size:12px;padding:5px 9px;color:var(--ink-2)">'
+      + '</div>'
+      + '<div class="cell"><span class="mini">Value</span><input type="text" class="num" data-f="value" inputmode="numeric" value="'+commafy(p.value)+'" placeholder="0" aria-label="Value"></div>'
+      + '<div class="cell sp-col"><span class="mini">Owned by</span><select data-f="owner" aria-label="Owned by">'
+        + '<option value="client"'+(p.owner==="client"?" selected":"")+'>Client</option>'
+        + '<option value="spouse"'+(p.owner==="spouse"?" selected":"")+'>Spouse</option>'
+        + '<option value="both"'+(p.owner==="both"?" selected":"")+'>Both</option></select></div>'
+      + '<div class="cell sp-col"><span class="mini">How acquired</span><select data-f="acq" aria-label="How acquired">'+opts+'</select></div>'
+      + '<div class="cell sp-col"><span class="mini">Classification</span><span class="chip" data-chip="'+i+'"></span></div>'
+      + '<button class="kill no-print" type="button" data-kill="'+i+'" aria-label="Remove this property">×</button>'
+      + '</div>';
+  }).join("") || '<p class="empty" style="padding:10px 0">No properties listed. Add one to begin.</p>';
+}
+
+function renderChips(){
+  var reg = regime();
+  S.props.forEach(function(p,i){
+    var el = document.querySelector('[data-chip="'+i+'"]'); if (!el) return;
+    if (!S.spouse){ el.className = "chip cli"; el.textContent = "Estate"; return; }
+    var b = bucket(p, reg);
+    if (b.cls === "shared"){
+      el.className = "chip shared";
+      el.textContent = reg === "cpg" ? "Conjugal" : "Community";
+    } else if (p.owner === "client"){
+      el.className = "chip cli"; el.textContent = "Exclusive — " + firstName(client());
+    } else if (p.owner === "spouse"){
+      el.className = "chip sp"; el.textContent = "Exclusive — " + firstName(spouseWho());
+    } else {
+      el.className = "chip split"; el.textContent = "Exclusive — split 50/50";
+    }
+  });
+}
+
+function renderHeirList(key){
+  var list = S[key];
+  $("list-"+key).innerHTML = list.length
+    ? list.map(function(n,i){
+        return '<div class="namerow"><span class="ord">'+(i+1)+'</span>'
+          + '<input type="text" data-hkey="'+key+'" data-hi="'+i+'" value="'+esc(n)+'" placeholder="Name" aria-label="Name">'
+          + '<button class="kill no-print" type="button" data-hkill="'+key+'" data-hi="'+i+'" aria-label="Remove">×</button></div>';
+      }).join("")
+    : '<p class="empty">None surviving</p>';
+}
+
+function renderTotals(reg){
+  var t = totals();
+  var shareWord = reg === "cpg" ? "Conjugal" : reg === "sep" ? "Shared" : "Community";
+  $("prop-totals").innerHTML = '<b>Total</b>'
+    + (S.spouse ? '<div class="tcell sp-col"><span>'+shareWord+'</span><span class="tv">'+peso(t.conj)+'</span></div>' : '')
+    + '<div class="tcell"><span>'+(S.spouse ? "Exclusive — " + esc(firstName(client())) : "Estate value")+'</span><span class="tv">'+peso(S.spouse ? t.exd : t.conj+t.exd+t.exs)+'</span></div>'
+    + (S.spouse ? '<div class="tcell sp-col"><span>Exclusive — '+esc(firstName(spouseWho()))+'</span><span class="tv">'+peso(t.exs)+'</span></div>' : '')
+    + '<span></span>';
+}
+
+/* ---------- liquidity / bequest / receipt rendering ---------- */
+function renderLiquidity(P, E){
+  var pctOf = function(v){ return P.T > 0 ? (v/P.T*100) : 0; };
+  var lp = pctOf(P.liqTotal), ip = 100 - lp;
+  var bar = "";
+  if (P.T <= 0){
+    bar = '<div class="seg ill" style="width:100%;color:var(--ink-3)">Nothing scheduled</div>';
+  } else {
+    bar = (P.liqTotal > 0 ? '<div class="seg liq" style="width:'+lp.toFixed(2)+'%">'+(lp>=7?pct(lp):"")+'</div>' : '')
+        + (P.illiqTotal > 0 ? '<div class="seg ill" style="width:'+ip.toFixed(2)+'%">'+(ip>=7?pct(ip):"")+'</div>' : '');
+    if (P.cashNeed > 0 && P.cashNeed < P.T)
+      bar += '<div class="need" style="left:'+pctOf(P.cashNeed).toFixed(2)+'%"><i>Cash needed</i></div>';
+  }
+  $("lbar").innerHTML = bar;
+  $("lkey").innerHTML =
+      '<span class="k"><i class="sw" style="background:var(--liq)"></i>Liquid — cash, deposits, funds <b>'+peso(P.liqTotal)+'</b></span>'
+    + '<span class="k"><i class="sw" style="background:var(--illiq)"></i>Illiquid — property, business <b>'+peso(P.illiqTotal)+'</b></span>'
+    + '<span class="k"><i class="sw" style="background:var(--seal);width:2px;height:12px;border-radius:0"></i>Settlement needs <b>'+peso(P.cashNeed)+'</b></span>';
+  $("liq-caption").textContent = P.T > 0 ? pct(lp) + " of the estate is cash" : "";
+
+  var say;
+  if (P.T <= 0) say = "Schedule some properties above and the liquidity picture appears here.";
+  else if (P.liqShort > 0)
+    say = "The estate holds <b>" + peso(P.liqTotal) + "</b> in cash against <b>" + peso(P.cashNeed)
+        + "</b> of settlement costs — a shortfall of <b>" + peso(P.liqShort) + "</b>. Without outside money the family sells "
+        + "property under time pressure, borrows against it, or waits. The pie above divides value; it cannot divide a house.";
+  else
+    say = "The estate holds <b>" + peso(P.liqTotal) + "</b> in cash. Settlement takes <b>" + peso(P.cashNeed)
+        + "</b> of it, leaving <b>" + peso(P.cashLeft) + "</b> against <b>" + peso(P.illiqTotal)
+        + "</b> of property. Every share above that cash line is a claim on real property — it has to be sold, mortgaged, or held in co-ownership before anyone is actually paid.";
+  if (P.tax.mode === "train" && P.liqTotal > 0.5)
+    say += ' <br><br>One early valve: under TRAIN the bank will release the deceased\'s deposits before settlement closes, '
+         + 'less a <b>6% final withholding tax</b> — about ' + peso(P.liqTotal * 0.06) + ' on the cash scheduled here.';
+  $("liq-say").innerHTML = say;
+}
+
+function renderBequests(P){
+  if (!P.rows.length){
+    $("bq-rows").innerHTML = '<p class="empty" style="padding:12px 0">No property in the estate yet.</p>';
+    return;
+  }
+  var opts = '<option value="residue">Residue — divided by law</option>'
+    + P.heirs.map(function(h){ return '<option value="'+h.id+'">'+esc(h.name)+' — '+h.role.toLowerCase()+'</option>'; }).join("");
+  $("bq-rows").innerHTML = P.rows.map(function(r){
+    var share = r.est < r.whole - 0.5 ? "half interest of " + peso(r.whole) : "whole";
+    return '<div class="bqrow" data-i="'+r.i+'">'
+      + '<span class="pn">'+esc(r.name || "Unnamed asset")+(r.note?'<small>'+esc(r.note)+'</small>':'')+'</span>'
+      + '<span class="ev">'+peso(r.est)+'<small>'+share+'</small></span>'
+      + '<select data-b="liq" aria-label="Liquidity">'
+        + '<option value="liquid"'+(r.kind==="liquid"?" selected":"")+'>Liquid — cash</option>'
+        + '<option value="realty"'+(r.kind==="realty"?" selected":"")+'>Real property</option>'
+        + '<option value="other"'+(r.kind==="other"?" selected":"")+'>Other illiquid</option></select>'
+      + '<select data-b="to" aria-label="Given to">'+opts.replace('value="'+r.to+'"','value="'+r.to+'" selected')+'</select>'
+      + '</div>';
+  }).join("");
+}
+
+function renderFreePortion(P, E){
+  var opts = '<option value="prorata"'+(P.freeTo==="prorata"?" selected":"")+'>Nobody in particular — split by the legitimes</option>'
+    + P.heirs.map(function(h){ return '<option value="'+h.id+'"'+(P.freeTo===h.id?" selected":"")+'>'+esc(h.name)+' — on top of their legitime</option>'; }).join("")
+    + '<option value="outside"'+(P.freeTo==="outside"?" selected":"")+'>Someone outside the family</option>';
+  if ($("in-freeto").innerHTML !== opts) $("in-freeto").innerHTML = opts;
+
+  var floor = P.floorTotal, free = Math.max(E - floor, 0), pool = P.freePool, say;
+  var lead = "The legitimes take <b>" + peso(floor) + "</b> and cannot be touched. The remaining <b>"
+           + peso(free) + "</b> is the only part " + esc(client()) + " actually controls. ";
+
+  if (E <= 0 || !P.heirs.length){
+    say = "Add heirs and properties above and the free portion appears here.";
+  } else if (free <= 0.005){
+    say = "There is no free portion in this estate — the compulsory legitimes absorb all of " + peso(E)
+        + ", so there is nothing for a will to direct.";
+  } else if (pool <= 0.005){
+    // the specific gifts above have already eaten it
+    say = lead + "The specific gifts above have already used it up"
+        + (P.impaired > 0.5
+            ? " and gone <b>" + peso(P.impaired) + "</b> past it, into legitimes the law protects — which is what the alarm below is reporting. "
+              + "Cut the gifts back by that much and the free portion becomes directable again."
+            : " exactly, so there is nothing left to direct.");
+  } else {
+    var named = P.heirs.filter(function(h){ return h.id === P.freeTo; })[0];
+    if (pool < free - 0.005)
+      lead = "The legitimes take <b>" + peso(floor) + "</b> and cannot be touched. Of the <b>" + peso(free)
+           + "</b> free portion, the specific gifts above have used " + peso(free - pool) + ", leaving <b>"
+           + peso(pool) + "</b> still to direct. ";
+    if (P.freeTo === "outside")
+      say = lead + "Directed outside the family, it leaves the heirs entirely — they keep their legitimes and nothing more.";
+    else if (named)
+      say = lead + "All of it goes to <b>" + esc(named.name) + "</b>, who therefore receives <b>" + peso(named.receives)
+          + "</b> — a " + peso(named.legitime) + " legitime plus " + peso(named.fromFree) + " of free portion. "
+          + "That is the ceiling: no will can take it higher, because everything above it is somebody else's protected floor.";
+    else
+      say = lead + "No will directs it, so it follows the legitimes in proportion.";
+  }
+  $("free-say").innerHTML = say;
+}
+
+function renderReceipts(P, E){
+  $("rec-caption").textContent = P.anyGift
+    ? "After the specific gifts in the will" : "No specific gifts — everyone takes their fair share";
+
+  var outsideRow = P.freeOutside > 0.005
+    ? '<tr class="freerow"><td><span class="heir"><span class="sw" style="background:'+HATCH+'"></span>'
+      + '<span class="who">Outside the family<span class="role">Free portion, directed by the will</span></span></span></td>'
+      + '<td>₱0</td><td>'+peso(P.freeOutside)+'</td><td>—</td>'
+      + '<td class="delta down">−'+peso(P.freeOutside)+'</td><td>—</td></tr>'
+    : "";
+  $("rec-body").innerHTML = P.heirs.length ? P.heirs.map(function(h){
+    var d = h.gap, bad = h.shortLegitime > 0.5;
+    return '<tr'+(bad?' style="background:var(--seal-soft)"':'')+'>'
+      + '<td><span class="heir"><span class="sw" style="background:'+COLOR[h.key]+'"></span>'
+        + '<span class="who">'+esc(h.name)+'<span class="role">'+h.role+(h.gifts.length?' &middot; '+esc(h.gifts.join(", ")):'')+'</span></span></span></td>'
+      + '<td>'+peso(h.base)+'</td>'
+      + '<td>'+peso(h.receives)+'</td>'
+      + '<td>'+peso(h.cash)+'</td>'
+      + '<td class="delta '+(d>0.5?'up':(d<-0.5?'down':''))+'">'+(Math.abs(d)<0.5?'—':(d>0?'+':'−')+peso(Math.abs(d)))+'</td>'
+      + '<td>'+(h.shortBase>0.5?peso(h.shortBase):'—')+'</td></tr>';
+  }).join("") + outsideRow : '<tr><td colspan="6" style="text-align:center;color:var(--ink-3);font-style:italic">No heirs listed yet</td></tr>';
+
+  // one scale across every bar
+  var max = 0;
+  P.heirs.forEach(function(h){ max = Math.max(max, h.receives + h.shortBase, h.base); });
+  $("hbars").innerHTML = max > 0 ? P.heirs.map(function(h){
+    var w = function(v){ return (v/max*100).toFixed(2) + "%"; };
+    return '<div class="hbrow">'
+      + '<span class="hbname">'+esc(h.name)+'<small>'+h.role+'</small></span>'
+      + '<div class="hbar">'
+        + (h.cash>0.5?'<div class="seg cash" style="width:'+w(h.cash)+'"></div>':'')
+        + (h.property>0.5?'<div class="seg prop" style="width:'+w(h.property)+'"></div>':'')
+        + (h.shortBase>0.5?'<div class="seg ins" style="width:'+w(h.shortBase)+'"></div>':'')
+        + '<div class="tick" style="left:'+w(h.base)+'"></div>'
+      + '</div>'
+      + '<span class="hbval">'+peso(h.receives + h.shortBase)+'</span>'
+      + '</div>';
+  }).join("") : "";
+
+  // the legitime alarm
+  var flag = "";
+  if (P.over)
+    flag = '<div class="flag" style="margin:14px 16px 0"><b>The gifts exceed the estate.</b>&nbsp;The specific gifts add up to more than '
+         + peso(E) + ', so there is nothing left to divide. Reduce a gift or revalue the assets.</div>';
+  else if (P.impaired > 0.5)
+    flag = '<div class="flag" style="margin:14px 16px 0"><b>Legitime impaired.</b>&nbsp;These gifts leave '
+         + P.impairedCount + ' heir' + (P.impairedCount>1?'s':'') + ' below the legitime the law reserves — '
+         + peso(P.impaired) + ' short in total. Under Arts. 906–907 the excessive gift is reducible on demand, so the will can be '
+         + 'cut down in court unless the shortfall is funded from outside the estate.</div>';
+  $("rec-flag").innerHTML = flag;
+
+  renderInsurance(P);
+}
+
+function renderInsurance(P){
+  var recommended = P.coverage, zero = $("cov-zero"), panel = $("insure");
+
+  if (recommended <= 0.5){
+    panel.classList.add("hidden"); zero.classList.remove("hidden");
+    zero.innerHTML = '<b>No equalizer needed as things stand.</b> Every heir reaches their fair share out of the estate itself, '
+      + 'and the liquid assets cover the settlement. Assign a property to one heir above, direct the free portion, or switch to '
+      + 'probate, and the coverage this plan would need appears here.';
+    return;
+  }
+  panel.classList.remove("hidden"); zero.classList.add("hidden");
+
+  var custom = S.coverMode === "custom";
+  var cover = custom ? S.coverAmount : recommended;
+  var el = $("in-cover");
+  if (document.activeElement !== el) el.value = commafy(Math.round(cover)) || "0";
+
+  // every beneficiary keeps their proportion of the need, whatever the policy size
+  var needs = P.heirs.filter(function(h){ return h.shortBase > 0.5; })
+    .map(function(h){ return { label:h.name, role:h.role, need:h.shortBase }; });
+  if (P.liqShort > 0.5)
+    needs.push({ label:"The estate", role:"Settlement costs it cannot cover", need:P.liqShort });
+
+  var lines = needs.map(function(n){
+    var share = n.need/recommended, amt = cover * share;
+    return '<li><span>'+esc(n.label)+'</span><span class="n">'+peso(amt)
+      + '<span class="pc">'+pct(share*100)+'</span></span></li>';
+  }).join("");
+
+  $("cov-lines").innerHTML = lines
+    + '<li class="tot"><span>Total coverage</span><span class="n">'+peso(cover)+'<span class="pc">100%</span></span></li>'
+    + (P.impaired > 0.5
+        ? '<li style="border-top:1px solid var(--line);color:var(--ink-3);font-size:12px"><span>Legal minimum — restore the impaired legitimes only</span><span class="n">'+peso(P.impaired)+'</span></li>'
+        : '');
+
+  var gap = cover - recommended, funded = recommended > 0 ? cover/recommended*100 : 0;
+  var status;
+  if (!custom || Math.abs(gap) < 0.5)
+    status = '<span class="exact">Sized to close the gap exactly.</span>';
+  else if (gap < 0)
+    status = '<span class="under">' + peso(-gap) + ' short</span> of the ' + peso(recommended)
+           + ' this plan needs — <b>' + pct(funded) + '</b> funded.';
+  else
+    status = '<span class="over">' + peso(gap) + ' more</span> than this plan needs — ' + peso(recommended)
+           + ' closes it, the rest is extra legacy.';
+  if (custom) status += ' <button type="button" id="cov-reset">Use the recommended ' + peso(recommended) + '</button>';
+  $("cov-status").innerHTML = status;
+
+  var m = $("cov-meter");
+  m.classList.toggle("full", funded >= 99.5);
+  m.querySelector(".fill").style.width = Math.max(0, Math.min(100, funded)).toFixed(1) + "%";
+
+  $("cov-why").innerHTML = 'Proceeds paid to a named beneficiary land outside the estate — cash on death, with no waiting for '
+    + 'settlement and nothing to sell. Name the beneficiaries irrevocably and the proceeds stay out of the gross estate for tax as well.'
+    + (custom && gap < -0.5 ? ' At this face amount every beneficiary is funded to ' + pct(funded) + ' of their gap, not made whole.' : '');
+}
+
+/* ---------- tax / routes / waivers rendering ---------- */
+function renderTax(P, reg){
+  var X = P.tax, L = [], train = X.mode === "train", cap = train ? FH_CAP : OLD_FH_CAP;
+  var row = function(k, v, cls, note){
+    return '<div class="lrow2 '+(cls||'')+'"><span>'+k+(note?'<small>'+note+'</small>':'')+'</span><span class="n">'+v+'</span></div>';
+  };
+  L.push(row("Gross estate", peso(X.gross), "", "Client's exclusive property plus the whole shared pot"));
+  if (S.debts > 0) L.push(row("Claims against the estate", peso(X.ordinary), "sub"));
+  X.active.extras.forEach(function(e){ if (e[1] > 0.5) L.push(row(e[0], peso(e[1]), "sub", e[2])); });
+  L.push(row("Standard deduction", peso(X.std), "sub",
+    train ? "Filipino citizen or resident, no receipts needed" : "Pre-TRAIN allowance"));
+  L.push(row("Family home", peso(X.fhDeduction), "sub",
+    X.fhRow ? esc(X.fhRow.name) + " — the client's interest" + (X.fhInterest > cap ? ", capped at " + peso(cap) : "")
+            : "None selected"));
+  if (S.spouse) L.push(row("Net conjugal share of " + esc(firstName(spouseWho())), peso(X.spouseShare), "sub",
+    "Half the shared pot, which was added whole above: " + peso(X.conj)
+    + (X.dConj > 0.5 ? " less " + peso(X.dConj) + " of debts charged to it = " + peso(X.netConj) : "")
+    + ", halved. None of " + esc(firstName(client())) + "'s " + peso(X.exd) + " of exclusive property is in this figure, and "
+    + esc(firstName(spouseWho())) + "'s own " + peso(X.exs) + " never entered the gross estate above, so there is nothing to deduct for it."));
+  L.push(row("Net taxable estate", peso(X.netTaxable), "rule"));
+  L.push(row(train ? "Estate tax at 6%" : "Estate tax, graduated 5%–20%", peso(X.tax), "big"));
+  if (X.surcharge > 0 || X.interest > 0){
+    L.push(row("Surcharge, 25%", peso(X.surcharge), "sub"));
+    L.push(row("Interest, 12% per year", peso(X.interest), "sub"));
+    L.push(row("Total payable to the BIR", peso(X.taxTotal), "rule"));
+  }
+  $("ledger").innerHTML = L.join("");
+  $("tax-caption").textContent = X.gross > 0 ? pct(X.effective) + " of the gross estate" : "";
+
+  var side = '<div><span class="cap">Estate tax due</span><div class="bignum">'+peso(X.taxTotal)+'</div>'
+    + '<p class="note">' + (train ? 'The headline rate is 6%, but deductions bring the effective cost to <b>'+pct(X.effective)+'</b> of the gross estate. '
+                                  : 'The graduated table tops out at 20%. The effective cost here is <b>'+pct(X.effective)+'</b> of the gross estate. ')
+    + peso(X.active.extraTotal + X.std + X.fhDeduction + X.spouseShare) + ' never reaches the tax base.</p></div>';
+  if (S.spouse && X.exs > 0.5)
+    side += '<p class="note"><b>Why this differs from the schedule.</b> ' + esc(firstName(spouseWho())) + ' retains '
+      + peso(X.spouseKeeps) + ' in total, but only <b>' + peso(X.spouseShare) + '</b> is deducted here. '
+      + 'The gross estate above took in the whole shared pot, so her half of it has to come back out. '
+      + 'Her ' + peso(X.exs) + ' of exclusive property was never added in the first place, so it is not deducted either. '
+      + peso(X.gross) + ' − ' + peso(X.spouseShare) + ' = ' + peso(X.gross - X.spouseShare)
+      + ', which is exactly the net distributable estate.</p>';
+  if (Math.abs(X.saved) > 0.5)
+    side += '<p class="note">' + (train
+      ? 'Had this death fallen before 2018, the old graduated table would have charged <b>' + peso(X.preRun.tax)
+        + '</b>. <b>TRAIN saves ' + peso(X.saved) + '</b> on this estate.'
+      : 'Under the TRAIN rules this same estate would pay <b>' + peso(X.trainRun.tax) + '</b> — '
+        + peso(X.saved) + ' less. The date of death is what decides it, and it cannot be chosen.') + '</p>';
+  if (S.monthsLate > 0)
+    side += '<div class="lateflag"><b>Filed '+S.monthsLate+' month'+(S.monthsLate>1?'s':'')+' late.</b> '
+      + 'A 25% surcharge and 12% annual interest add '+peso(X.surcharge + X.interest)
+      + ' to the bill, plus a compromise penalty on the BIR schedule. The return is due one year from death.</div>';
+  else
+    side += '<p class="note">Filed on time. Miss the deadline and the BIR adds a <b>25% surcharge</b>, '
+      + '<b>12% annual interest</b> and a compromise penalty — set the months late above to see it.'
+      + (train ? ' If the cash is short, TRAIN lets the tax be paid <b>in installments over two years</b>.' : '') + '</p>';
+  $("taxside").innerHTML = side;
+
+  var fmt = function(d){ return d ? d.toLocaleDateString("en-PH",{day:"numeric",month:"long",year:"numeric"}) : "—"; };
+  $("tax-badge").textContent = train ? "TRAIN Law — RA 10963" : "Pre-TRAIN — old NIRC rules";
+  $("tax-why").innerHTML = train
+    ? 'Death on or after <b>1 January 2018</b>. Flat 6%, a ₱5,000,000 standard deduction and up to ₱10,000,000 for the family home. '
+      + '<b style="color:var(--ink)">Funeral, medical and judicial expenses are no longer deductible — the ₱5,000,000 standard deduction absorbs them.</b> '
+      + 'Return due ' + fmt(X.due) + ', one year from death.'
+    : 'Death before <b>1 January 2018</b>. The graduated 5%–20% table applies, with only ₱1,000,000 of standard deduction and ₱1,000,000 for the family home — '
+      + '<b style="color:var(--ink)">but funeral, medical and judicial expenses are deductible.</b> Return due ' + fmt(X.due) + ', six months from death.';
+  $("u-death").textContent = train ? "On or after 1 Jan 2018 — TRAIN applies" : "Before 1 Jan 2018 — old rules apply";
+  $("u-fh").textContent = "Deductible up to " + peso(cap) + " of the client's interest";
+  $("u-late").textContent = "Return is due " + (train ? "1 year" : "6 months") + " from death";
+  document.querySelector(".optrow").classList.toggle("train", train);
+
+  var opts = '<option value="-1">None selected</option>' + P.rows.map(function(r){
+    return '<option value="'+r.i+'"'+(r.i===S.familyHome?' selected':'')+'>'+esc(r.name || "Unnamed asset")+' — '+peso(r.est)+'</option>';
+  }).join("");
+  if ($("in-fh").innerHTML !== opts) $("in-fh").innerHTML = opts;
+}
+
+function renderRoutes(P){
+  var X = P.tax, ejsPick = S.route === "ejs";
+  var r = function(label, jud, ejs, noteJ, noteE){
+    return '<tr><td>'+label+'</td>'
+      + '<td'+(ejsPick?'':' class="pick"')+'>'+jud+(noteJ?'<small>'+noteJ+'</small>':'')+'</td>'
+      + '<td'+(ejsPick?' class="pick"':'')+'>'+ejs+(noteE?'<small>'+noteE+'</small>':'')+'</td></tr>';
+  };
+  $("routes").innerHTML =
+    '<thead><tr><th>Cost</th><th'+(ejsPick?'':' class="pick"')+'>Judicial / probate</th><th'+(ejsPick?' class="pick"':'')+'>Extrajudicial</th></tr></thead><tbody>'
+    + r("Estate tax", peso(X.taxTotal), peso(X.taxTotal), "6% of the net taxable estate", "6% of the net taxable estate")
+    + r("Executor / administrator", peso(X.executor), "₱0", S.rExecutor+"% of the gross estate", "Heirs manage it directly")
+    + r("Notarial fee", "—", peso(X.notarial), "Inside the probate lawyer's fees", S.rNotarial+"% of the gross estate")
+    + r("Newspaper publication", peso(X.pub), peso(X.pub), "Ordered by the court", "3 consecutive weeks")
+    + r("Local transfer tax", peso(X.transfer), peso(X.transfer), S.rTransfer+"% of "+peso(X.realty)+" real property", S.rTransfer+"% of "+peso(X.realty)+" real property")
+    + r("Registration fee", peso(X.registration), peso(X.registration), S.rReg+"% to the Register of Deeds", S.rReg+"% to the Register of Deeds")
+    + r("Donor's tax", peso(0), P.donorsTax > 0 ? peso(P.donorsTax) : "₱0", "No waivers in probate", P.donorsTax > 0 ? "A share was waived to a named heir" : "None waived")
+    + '</tbody><tfoot><tr><td>Total cash to transfer the estate</td>'
+    + '<td'+(ejsPick?'':' class="pick"')+'>'+peso(X.jud)+'</td><td'+(ejsPick?' class="pick"':'')+'>'+peso(X.ejs + P.donorsTax)+'</td></tr>'
+    + '<tr class="saving"><td>Difference</td><td colspan="2" style="text-align:right">'
+    + (X.jud > X.ejs + P.donorsTax
+        ? 'Extrajudicial settlement saves ' + peso(X.jud - X.ejs - P.donorsTax) + ' — but it needs every heir to agree, and no one may be a minor without a court-appointed guardian.'
+        : 'Probate costs ' + peso(X.ejs + P.donorsTax - X.jud) + ' less here.')
+    + '</td></tr></tfoot>';
+}
+
+function renderWaivers(P){
+  $("waive-say").innerHTML = 'There are two ways to give up an inheritance and they are taxed very differently. '
+    + 'A plain <b>repudiation</b> — refusing outright, with the share accruing to the co-heirs by operation of law — costs nothing. '
+    + 'A <b>waiver in favour of a named person</b> is a donation in the BIR\'s eyes, and the heir who gave it up owes '
+    + '<b>6% donor\'s tax on everything above ₱250,000</b> — on money they never received.';
+
+  $("wgrid").innerHTML = P.heirs.length ? P.heirs.map(function(h){
+    var opts = '<option value="accept"'+(h.waive==="accept"?" selected":"")+'>Accepts their share</option>'
+      + '<option value="repudiate"'+(h.waive==="repudiate"?" selected":"")+'>Repudiates — share goes to the co-heirs</option>'
+      + P.heirs.filter(function(o){ return o.id !== h.id; }).map(function(o){
+          return '<option value="'+o.id+'"'+(h.waive===o.id?" selected":"")+'>Waives to '+esc(o.name)+'</option>';
+        }).join("");
+    var acting = h.waive !== "accept";
+    var line = h.waive === "repudiate"
+      ? 'Repudiated. Nothing to the BIR — the share accrues to the co-heirs.'
+      : (acting ? 'Donor&rsquo;s tax owed by ' + esc(h.name) + ': <b>' + peso(h.donorsTax) + '</b>'
+                : 'If waived to a named heir, ' + esc(firstName(h.name)) + ' would owe <b>' + peso(h.wouldOwe) + '</b>');
+    return '<div class="wcard'+(acting?" acting":"")+'">'
+      + '<div class="top"><span class="nm">'+esc(h.name)+'<small>'+h.role+'</small></span>'
+      + '<span class="amt">'+peso(h.waive==="accept"?h.receives:h.gave)+'</span></div>'
+      + '<select data-w="'+h.id+'" aria-label="What '+esc(h.name)+' does with their share">'+opts+'</select>'
+      + '<span class="owe">'+line+'</span></div>';
+  }).join("") : '<p class="empty">No heirs listed yet.</p>';
+
+  $("waive-caption").textContent = P.donorsTax > 0 ? peso(P.donorsTax) + " of donor's tax triggered" : "Nobody has waived";
+
+  var out = "";
+  if (P.donorsTax > 0){
+    var t = P.waivers.filter(function(w){ return w.targeted; });
+    out = '<div class="flag"><b>The waived-share trap.</b>&nbsp;'
+      + t.map(function(w){
+          return esc(w.from.name) + ' waived ' + peso(w.amount) + ' to ' + esc(w.to.name)
+            + ' and owes ' + peso(w.tax) + ' in donor\'s tax on it — payable in cash, out of pocket, on an inheritance '
+            + esc(firstName(w.from.name)) + ' never took.';
+        }).join(" ")
+      + ' A total partition agreement that simply allots the property differently avoids this; an explicit, targeted waiver does not.</div>';
+  } else if (P.waivers.length){
+    out = '<div class="flag" style="background:var(--accent-soft);border-left-color:var(--accent)"><b>No donor\'s tax.</b>&nbsp;'
+      + 'The repudiated share accrues to the co-heirs by operation of law, so the BIR sees no gift. This is the clean way to step aside.</div>';
+  }
+  $("waive-result").innerHTML = out;
+}
+
+/* ---------- the summary sheet ---------- */
+function renderSummary(P, L, E, reg, t, i){
+  var X = P.tax;
+  $("sum-title").textContent = "Estate of " + client();
+  $("sum-sub").textContent = (S.spouse ? REGIME_NAME[reg] : "No property regime")
+    + " · " + (S.lc.length + S.ilc.length + S.lp.length + (S.spouse?1:0)) + " heirs";
+
+  var settle = X.chosen + P.donorsTax;
+  var tiles = [
+    ["Net distributable estate", peso(E), "What actually passes to the heirs", "key"],
+    ["Tax and settlement", peso(settle), (S.route==="ejs"?"Extrajudicial":"Judicial") + " · " + pct(X.effective) + " effective estate tax", ""],
+    ["Cash in the estate", peso(P.liqTotal), P.liqShort > 0.5 ? peso(P.liqShort) + " short of what settlement needs" : peso(P.cashLeft) + " left after settlement", P.liqShort > 0.5 ? "warn" : ""],
+    ["Insurance to balance it", P.coverage > 0.5 ? peso(S.coverMode==="custom"?S.coverAmount:P.coverage) : "None needed",
+      P.coverage > 0.5 ? "Closes the gap without selling property" : "Every heir reaches their fair share", P.coverage > 0.5 ? "warn" : "good"]
+  ];
+  $("sum-tiles").innerHTML = tiles.map(function(c){
+    return '<div class="tile '+c[3]+'"><span class="k">'+esc(c[0])+'</span><span class="v">'+c[1]+'</span><span class="n">'+esc(c[2])+'</span></div>';
+  }).join("");
+
+  var facts = [];
+  if (S.spouse)
+    facts.push("<b>" + esc(firstName(spouseWho())) + " keeps " + peso(L.spouseOwn) + " before any inheritance</b> — her half of the shared property plus her own. Only " + peso(E) + " is " + esc(firstName(client())) + "'s to pass on.");
+  facts.push("<b>" + peso(P.floorTotal) + " is reserved by law</b> as legitimes and cannot be changed by any will. The free portion — <b>" + peso(Math.max(E - P.floorTotal, 0)) + "</b> — is the only part " + esc(firstName(client())) + " controls.");
+  facts.push("<b>Without a will</b> the estate is split by the Civil Code's fixed ratios. <b>With one</b>, the free portion can be directed, but the legitimes stand either way.");
+  facts.push("<b>Only " + peso(P.liqTotal) + " of the estate is cash</b> — " + (P.T>0?pct(P.liqTotal/P.T*100):"0%") + " of it. The remaining " + peso(P.illiqTotal) + " is property that has to be sold, mortgaged or co-owned before anyone is paid.");
+  facts.push("<b>The BIR must be paid " + peso(X.taxTotal) + "</b> within " + (X.mode==="train"?"one year":"six months") + " of death" + (X.due ? ", by " + X.due.toLocaleDateString("en-PH",{day:"numeric",month:"long",year:"numeric"}) : "") + ". Late filing adds a 25% surcharge and 12% annual interest.");
+  if (P.impaired > 0.5)
+    facts.push("<b>The current gifts impair " + P.impairedCount + " legitime" + (P.impairedCount>1?"s":"") + " by " + peso(P.impaired) + "</b>, which makes the will reducible in court. Fund it or cut the gifts back.");
+  else if (P.equalize > 0.5)
+    facts.push("<b>" + peso(P.equalize) + " separates the heirs from an equal outcome.</b> Life insurance paid to named beneficiaries closes it on death, outside the estate and outside probate.");
+  else
+    facts.push("<b>Every heir reaches their fair share from the estate itself.</b> Insurance would be a legacy, not a repair.");
+
+  drawPie($("pie-st"), $("tip-st"), $("pie-st").parentNode, slicesOf(t), E, "st");
+  drawPie($("pie-si"), $("tip-si"), $("pie-si").parentNode, slicesOf(i), E, "si");
+  renderLegend($("leg-st"), t, E);
+  renderLegend($("leg-si"), i, E);
+
+  $("sum-facts").innerHTML = facts.map(function(f,n){
+    return '<div class="fact"><span class="no">'+(n+1)+'</span><span>'+f+'</span></div>';
+  }).join("");
+}
+
+/* ---------- main ---------- */
+function render(){
+  var reg = regime();
+
+  if (!S.spouse){
+    $("regime-badge").textContent = "No property regime";
+    $("regime-why").textContent = "With no spouse, every property listed below belongs to " + client() + " alone and enters the estate in full.";
+  } else {
+    $("regime-badge").textContent = REGIME_NAME[reg];
+    var by = S.prenup !== "none"
+      ? "Set by pre-nuptial agreement, overriding the default for the date of marriage."
+      : (reg === "cpg" ? "No marriage settlement, and the marriage predates 3 August 1988 — the Civil Code default."
+                       : "No marriage settlement, and the marriage is on or after 3 August 1988 — the Family Code default.");
+    var rule = reg === "cpg"
+      ? "Property owned before the marriage stays exclusive to its owner — but the fruits and income of that exclusive property belong to the partnership."
+      : reg === "acp"
+      ? "Property owned before the marriage joins the community. Only property inherited or received by gift during the marriage, and its fruits, stay exclusive."
+      : "Each spouse keeps everything in their own name. Nothing is pooled, so nothing is split.";
+    $("regime-why").innerHTML = esc(by) + " <b style='color:var(--ink)'>" + esc(rule) + "</b>";
+  }
+
+  $("spouse-fields").classList.toggle("hidden", !S.spouse);
+  $("hint-lp").textContent = S.lc.length > 0
+    ? "Excluded — legitimate children are surviving." : "Inherit only when no legitimate children survive.";
+  document.querySelector(".sched").classList.toggle("no-spouse", !S.spouse);
+  $("in-debton").classList.toggle("hidden", !S.spouse);
+  $("debt-hint").textContent = !S.spouse
+    ? "Settled out of the estate before any share is computed. Heirs never pay out of pocket."
+    : (S.debtOn === "conjugal"
+        ? "A conjugal charge comes out of the shared pot, so it halves " + firstName(spouseWho()) + "'s share along with the estate."
+        : "The client's own debt is settled out of his exclusive property and leaves " + firstName(spouseWho()) + "'s half untouched.");
+
+  renderChips();
+  renderTotals(reg);
+
+  var L = liquidate(), E = L.estate;
+  renderDerive(L, reg);
+
+  var t = testate(E), i = intestate(E);
+  drawPie($("pie-t"), $("tip-t"), $("wrap-t"), slicesOf(t), E, "t");
+  drawPie($("pie-i"), $("tip-i"), $("wrap-i"), slicesOf(i), E, "i");
+  renderLegend($("leg-t"), t, E);
+  renderLegend($("leg-i"), i, E);
+  renderNotes($("notes-t"), t);
+  renderNotes($("notes-i"), i);
+  renderTable(t, i, E);
+
+  $("table-caption").textContent = "Estate of " + client() + " · " + peso(E);
+
+  var P = plan(E, t, reg);
+  renderTax(P, reg);
+  renderRoutes(P);
+  renderWaivers(P);
+  $("cost-hint").innerHTML = "On top of " + peso(P.tax.chosen + P.donorsTax) + " of estate tax and settlement costs computed above, under "
+    + (S.route === "ejs" ? "extrajudicial settlement" : "judicial settlement") + ".";
+  renderLiquidity(P, E);
+  renderBequests(P);
+  renderFreePortion(P, E);
+  renderReceipts(P, E);
+  renderSummary(P, L, E, reg, t, i);
+
+  var msg = t.cap || i.cap, flag = $("cap-flag");
+  if (msg){ flag.innerHTML = '<b>Legitime floor reached.</b>&nbsp;' + esc(msg); flag.style.display = "flex"; }
+  else flag.style.display = "none";
+}
+
+// ---------- src/ui/wire.js ----------
+// Generated from the single-file prototype. Behaviour is identical; see test/engine.test.mjs.
+
+
+
+
+function wire(){
+/* ---------- wiring ---------- */
+$("prop-rows").addEventListener("input", function(e){
+  var el = e.target.closest("input, select"); if (!el) return;
+  var i = +el.closest(".prow").dataset.i, f = el.dataset.f;
+  if (f === "value"){
+    S.props[i].value = parseMoney(el.value);
+    var atEnd = el.selectionStart === el.value.length;
+    el.value = commafy(S.props[i].value);
+    if (atEnd) el.setSelectionRange(el.value.length, el.value.length);
+  } else S.props[i][f] = el.value;
+  render();
+});
+$("prop-rows").addEventListener("click", function(e){
+  var b = e.target.closest("[data-kill]"); if (!b) return;
+  S.props.splice(+b.dataset.kill, 1); renderPropRows(); render();
+});
+$("add-prop").addEventListener("click", function(){
+  S.props.push({name:"", note:"", value:0, owner:"client", acq:"onerous", liq:"realty", to:"residue"});
+  renderPropRows(); render();
+  var rows = $("prop-rows").querySelectorAll('.prow input[data-f="name"]');
+  if (rows.length) rows[rows.length-1].focus();
+});
+
+["lc","ilc","lp"].forEach(function(key){
+  $("list-"+key).addEventListener("input", function(e){
+    var inp = e.target.closest("input[data-hkey]"); if (!inp) return;
+    S[key][+inp.dataset.hi] = inp.value; render();
+  });
+  $("list-"+key).addEventListener("click", function(e){
+    var b = e.target.closest("[data-hkill]"); if (!b) return;
+    S[key].splice(+b.dataset.hi, 1); renderHeirList(key); render();
+  });
+});
+document.querySelectorAll("[data-add]").forEach(function(btn){
+  btn.addEventListener("click", function(){
+    var key = btn.dataset.add;
+    if (key === "lp" && S.lp.length >= 2) return;
+    S[key].push(""); renderHeirList(key); render();
+    var ins = $("list-"+key).querySelectorAll("input");
+    if (ins.length) ins[ins.length-1].focus();
+  });
+});
+
+$("in-client").addEventListener("input", function(e){ S.client = e.target.value; render(); });
+$("in-spousename").addEventListener("input", function(e){ S.spouseName = e.target.value; render(); });
+$("in-spouse").addEventListener("change", function(e){ S.spouse = e.target.checked; render(); });
+$("in-date").addEventListener("change", function(e){ S.date = e.target.value; render(); });
+$("in-prenup").addEventListener("change", function(e){ S.prenup = e.target.value; render(); });
+$("in-debts").addEventListener("input", function(e){
+  S.debts = parseMoney(e.target.value);
+  var atEnd = e.target.selectionStart === e.target.value.length;
+  e.target.value = commafy(S.debts) || "0";
+  if (atEnd) e.target.setSelectionRange(e.target.value.length, e.target.value.length);
+  render();
+});
+$("bq-rows").addEventListener("input", function(e){
+  var el = e.target.closest("select"); if (!el) return;
+  var i = +el.closest(".bqrow").dataset.i;
+  if (el.dataset.b === "liq") S.props[i].liq = el.value; else S.props[i].to = el.value;
+  render();
+});
+function bindMoneyField(id, key){
+  $(id).addEventListener("input", function(e){
+    S[key] = parseMoney(e.target.value);
+    var atEnd = e.target.selectionStart === e.target.value.length;
+    e.target.value = commafy(S[key]) || "0";
+    if (atEnd) e.target.setSelectionRange(e.target.value.length, e.target.value.length);
+    render();
+  });
+}
+function bindRate(id, key){
+  $(id).addEventListener("input", function(e){
+    var n = parseFloat(String(e.target.value).replace(/[^0-9.]/g,""));
+    S[key] = isFinite(n) && n >= 0 ? n : 0;
+    render();
+  });
+}
+bindMoneyField("in-other","otherCash");
+bindMoneyField("in-funeral","funeral");
+bindMoneyField("in-medical","medical");
+bindMoneyField("in-judicial","judicial");
+$("in-death").addEventListener("change", function(e){ S.deathDate = e.target.value; render(); });
+bindMoneyField("in-pub","pub");
+bindRate("in-rtransfer","rTransfer");
+bindRate("in-rreg","rReg");
+bindRate("in-rnot","rNotarial");
+bindRate("in-rexec","rExecutor");
+$("in-late").addEventListener("input", function(e){
+  var n = parseInt(String(e.target.value).replace(/[^0-9]/g,""), 10);
+  S.monthsLate = isFinite(n) && n > 0 ? Math.min(n, 600) : 0;
+  render();
+});
+$("in-fh").addEventListener("change", function(e){ S.familyHome = parseInt(e.target.value,10); render(); });
+$("in-route").addEventListener("change", function(e){ S.route = e.target.value; render(); });
+$("in-debton").addEventListener("change", function(e){ S.debtOn = e.target.value; render(); });
+$("in-freeto").addEventListener("change", function(e){ S.freeTo = e.target.value; render(); });
+$("in-cover").addEventListener("input", function(e){
+  S.coverMode = "custom"; S.coverAmount = parseMoney(e.target.value);
+  var atEnd = e.target.selectionStart === e.target.value.length;
+  e.target.value = commafy(S.coverAmount) || "0";
+  if (atEnd) e.target.setSelectionRange(e.target.value.length, e.target.value.length);
+  render();
+});
+$("cov-status").addEventListener("click", function(e){
+  if (!e.target.closest("#cov-reset")) return;
+  S.coverMode = "auto"; render();
+});
+$("wgrid").addEventListener("change", function(e){
+  var el = e.target.closest("select[data-w]"); if (!el) return;
+  S.waive[el.dataset.w] = el.value; render();
+});
+
+$("btn-print").addEventListener("click", function(){ window.print(); });
+
+$("prep-date").textContent = new Date().toLocaleDateString("en-PH", {day:"numeric", month:"long", year:"numeric"});
+(function(){
+  var d = new Date(), iso = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+  S.deathDate = iso; $("in-death").value = iso;
+})();
+
+renderPropRows();
+["lc","ilc","lp"].forEach(renderHeirList);
+render();
+}
+
+// ---------- src/cloud.js ----------
+// Saved client cases, backed by Supabase. Entirely optional: with config.js
+// unset this module adds nothing to the page and the calculator behaves exactly
+// as the offline version does.
+
+
+
+const CDN = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+let sb = null;
+
+const el = (tag, cls, text) => {
+const n = document.createElement(tag);
+if (cls) n.className = cls;
+if (text != null) n.textContent = text;
+return n;
+};
+
+async function initCloud() {
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return; // local-only: nothing to do
+try {
+  const { createClient } = await import(CDN);
+  sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+} catch (e) {
+  console.warn("Cloud storage unavailable, continuing offline.", e);
+  return;
+}
+mountBar();
+sb.auth.onAuthStateChange(() => refresh());
+refresh();
+}
+
+function mountBar() {
+const bar = el("div", "cloudbar no-print");
+bar.id = "cloudbar";
+document.querySelector(".appbar .masthead").appendChild(bar);
+}
+
+async function refresh() {
+const bar = document.getElementById("cloudbar");
+if (!bar) return;
+const { data: { session } } = await sb.auth.getSession();
+bar.innerHTML = "";
+
+if (!session) {
+  const email = el("input");
+  email.type = "email";
+  email.placeholder = "you@example.com";
+  email.setAttribute("aria-label", "Email for a sign-in link");
+  const go = el("button", "ghost", "Email me a sign-in link");
+  go.type = "button";
+  go.onclick = async () => {
+    if (!email.value.trim()) return;
+    go.disabled = true;
+    go.textContent = "Sending…";
+    const { error } = await sb.auth.signInWithOtp({
+      email: email.value.trim(),
+      options: { emailRedirectTo: window.location.href }
+    });
+    go.textContent = error ? "Couldn't send — check the address" : "Check your inbox";
+    if (error) { go.disabled = false; console.warn(error); }
+  };
+  bar.append(email, go);
+  return;
+}
+
+const sel = el("select");
+sel.setAttribute("aria-label", "Saved cases");
+sel.append(new Option("Saved cases…", ""));
+const { data: rows, error } = await sb
+  .from("cases").select("id,title,updated_at").order("updated_at", { ascending: false });
+if (error) console.warn(error);
+(rows || []).forEach(r => sel.append(new Option(r.title, r.id)));
+sel.onchange = () => sel.value && openCase(sel.value);
+
+const save = el("button", "ghost", "Save case");
+save.type = "button";
+save.onclick = () => saveCase(sel);
+
+const out = el("button", "ghost", "Sign out");
+out.type = "button";
+out.onclick = () => sb.auth.signOut();
+
+bar.append(sel, save, out);
+}
+
+async function openCase(id) {
+const { data, error } = await sb.from("cases").select("state").eq("id", id).single();
+if (error) return console.warn(error);
+Object.assign(S, data.state);
+syncInputs();
+}
+
+async function saveCase(sel) {
+const title = prompt("Name this case", (S.client || "Untitled").trim());
+if (!title) return;
+const { data: { user } } = await sb.auth.getUser();
+const { error } = await sb.from("cases").insert({
+  owner: user.id, title, client_name: S.client, state: S
+});
+if (error) return console.warn(error);
+refresh();
+}
+
+// Push loaded state back into the form controls, then redraw.
+function syncInputs() {
+const set = (id, v) => { const n = document.getElementById(id); if (n) n.value = v; };
+set("in-client", S.client);
+set("in-spousename", S.spouseName);
+set("in-date", S.date);
+set("in-prenup", S.prenup);
+set("in-death", S.deathDate);
+set("in-route", S.route);
+set("in-debton", S.debtOn);
+set("in-freeto", S.freeTo);
+const sp = document.getElementById("in-spouse");
+if (sp) sp.checked = !!S.spouse;
+renderPropRows();
+["lc", "ilc", "lp"].forEach(renderHeirList);
+render();
+}
+
+wire();
+initCloud();
+})();
+</script>
 </body>
 </html>

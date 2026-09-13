@@ -5,8 +5,10 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "start": "npx --yes serve -l 5173 .",
-    "test": "node --test"
+    "build": "node build.mjs",
+    "start": "node build.mjs && npx --yes serve -l 5173 .",
+    "test": "node --test",
+    "check": "node build.mjs && node --test"
   },
   "license": "MIT"
 }

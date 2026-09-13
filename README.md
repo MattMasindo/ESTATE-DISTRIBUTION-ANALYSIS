@@ -24,15 +24,26 @@ Everything runs in the browser. No account, no server, nothing leaves the page.
 
 ---
 
-## Run it locally
+## Run it
+
+**Just open `index.html`.** Double-click it. It is a single self-contained file —
+no server, no install, no internet. That is also exactly what gets deployed.
+
+To work on it instead:
 
 ```bash
-npm start            # serves on http://localhost:5173
+npm run build        # regenerate index.html from src/
+npm start            # build, then serve on http://localhost:5173
+npm run check        # build and run the tests
 ```
 
-Any static server works — the app is plain ES modules with no build step. It must
-be served over HTTP, not opened as a `file://` URL, because browsers block module
-imports from the filesystem.
+`index.html` is **generated** from `src/` by `build.mjs`, which inlines the CSS and
+flattens the ES modules into one file. Edit the modules, then rebuild — never edit
+`index.html` by hand, your changes will be overwritten.
+
+Why bundle at all? A single file has no relative paths to get wrong, no CORS rules
+to trip over, and nothing for a static host to mis-serve. The modular source stays
+the thing you edit and test; this is just what ships.
 
 ## Test it
 
@@ -54,8 +65,12 @@ suite, then publishes. One-time setup:
 1. **Settings → Pages → Source: GitHub Actions**
 2. Push to `main`.
 
-The site goes live at `https://<user>.github.io/<repo>/`. There is no build step,
-so what you push is what serves.
+The site goes live at `https://<user>.github.io/<repo>/`.
+
+`.nojekyll` is committed so Pages serves the files untouched.
+
+**If the page loads as unstyled text with nothing computed,** you are looking at a
+stale `index.html`. Run `npm run build`, commit, push.
 
 ---
 
@@ -85,9 +100,11 @@ Privacy Act. Left unconfigured, nothing is stored anywhere.
 ## Layout
 
 ```
-index.html              markup and layout
+index.html              GENERATED — the deployable single-file app
+build.mjs               inlines src/ into index.html
 config.js               Supabase credentials — null means local-only
 src/
+  body.html             the markup
   state.js              the single mutable scenario object
   format.js             peso, percentage and fraction formatting; heir names
   engine/

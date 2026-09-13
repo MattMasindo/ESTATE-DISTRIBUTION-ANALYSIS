@@ -1,0 +1,324 @@
+<header class="appbar">
+  <div class="masthead">
+    <div>
+      <div class="eyebrow">Civil Code &amp; Family Code of the Philippines</div>
+      <h1>Estate Distribution Calculator</h1>
+      <p class="sub">Name the client, schedule the properties, list the heirs. The compulsory legitimes, the free portion and the intestate shares are computed side by side.</p>
+    </div>
+    <div class="stack" style="align-items:flex-end">
+      <div class="prep">
+        <span class="eyebrow">Prepared by</span>
+        <input class="pname" id="in-prep" value="Matthew Isaiah Masindo" aria-label="Prepared by">
+        <input class="ptitle" id="in-preptitle" value="Certified Trust and Estate Planner" aria-label="Title">
+        <span class="pdate" id="prep-date"></span>
+      </div>
+      <button class="ghost no-print" id="btn-print" type="button">Print one-pager</button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <section class="panel summary">
+    <div class="panel-head">
+      <h2 id="sum-title">Estate plan summary</h2>
+      <span class="eyebrow" id="sum-sub"></span>
+    </div>
+    <div class="tiles" id="sum-tiles"></div>
+    <div class="sumpies print-only">
+      <div class="sumpie">
+        <span class="cap2">If there is a valid will</span>
+        <div class="chartwrap"><svg id="pie-st" viewBox="0 0 240 240" role="img" aria-label="With a will"></svg><div class="tip" id="tip-st"></div></div>
+        <div class="legend" id="leg-st"></div>
+      </div>
+      <div class="sumpie">
+        <span class="cap2">If there is no will</span>
+        <div class="chartwrap"><svg id="pie-si" viewBox="0 0 240 240" role="img" aria-label="With no will"></svg><div class="tip" id="tip-si"></div></div>
+        <div class="legend" id="leg-si"></div>
+      </div>
+    </div>
+    <div class="facts" id="sum-facts"></div>
+  </section>
+
+  <!-- ===================== PEOPLE ===================== -->
+  <section class="panel">
+    <div class="panel-head"><h2>The client and the heirs</h2></div>
+
+    <div class="people">
+      <div class="group">
+        <span class="lbl">Client</span>
+        <input type="text" id="in-client" value="Juan Dela Cruz" placeholder="Full name" aria-label="Name of the client">
+        <span class="hint">Whose estate is being planned.</span>
+      </div>
+
+      <div class="group">
+        <span class="lbl"><span class="sw" style="background:var(--s-ss)"></span>Spouse</span>
+        <div class="check"><input type="checkbox" id="in-spouse" checked><label for="in-spouse">Married, spouse survives</label></div>
+        <div id="spouse-fields" class="stack" style="gap:8px">
+          <input type="text" id="in-spousename" value="Maria Dela Cruz" placeholder="Full name" aria-label="Name of the spouse">
+          <div class="stack">
+            <label class="hint" for="in-date" style="font-weight:600;color:var(--ink-2)">Date of marriage</label>
+            <input type="date" id="in-date" value="1985-02-14">
+          </div>
+          <div class="stack">
+            <label class="hint" for="in-prenup" style="font-weight:600;color:var(--ink-2)">Marriage settlement</label>
+            <select id="in-prenup">
+              <option value="none">None — regime set by law</option>
+              <option value="cpg">Pre-nuptial — Conjugal Partnership of Gains</option>
+              <option value="acp">Pre-nuptial — Absolute Community of Property</option>
+              <option value="sep">Pre-nuptial — Complete Separation of Property</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="group-head">
+          <span class="lbl"><span class="sw" style="background:var(--s-lc)"></span>Legitimate children</span>
+          <button class="add no-print" type="button" data-add="lc">+ Add</button>
+        </div>
+        <div id="list-lc"></div>
+        <span class="hint">Including legitimated and legally adopted.</span>
+      </div>
+
+      <div class="group">
+        <div class="group-head">
+          <span class="lbl"><span class="sw" style="background:var(--s-ilc)"></span>Illegitimate children</span>
+          <button class="add no-print" type="button" data-add="ilc">+ Add</button>
+        </div>
+        <div id="list-ilc"></div>
+        <span class="hint">Recognized. Each takes half a legitimate child's share.</span>
+      </div>
+
+      <div class="group">
+        <div class="group-head">
+          <span class="lbl"><span class="sw" style="background:var(--s-lp)"></span>Parents</span>
+          <button class="add no-print" type="button" data-add="lp">+ Add</button>
+        </div>
+        <div id="list-lp"></div>
+        <span class="hint" id="hint-lp"></span>
+      </div>
+    </div>
+
+    <div class="regime-bar">
+      <span class="badge" id="regime-badge">—</span>
+      <span class="why" id="regime-why"></span>
+    </div>
+  </section>
+
+  <!-- ===================== PROPERTY SCHEDULE ===================== -->
+  <section class="panel pbreak">
+    <div class="panel-head">
+      <h2>Schedule of properties</h2>
+      <button class="add no-print" type="button" id="add-prop">+ Add property</button>
+    </div>
+
+    <div class="sched">
+      <div class="prow head" id="sched-head">
+        <span>Property</span>
+        <span class="r">Value</span>
+        <span class="sp-col">Owned by</span>
+        <span class="sp-col">How acquired</span>
+        <span class="sp-col">Classification</span>
+        <span></span>
+      </div>
+      <div id="prop-rows"></div>
+      <div class="ptot" id="prop-totals"></div>
+
+      <div class="sched-foot">
+        <div class="debt">
+          <label for="in-debts">Debts &amp; liabilities</label>
+          <input type="text" class="num" id="in-debts" value="0" inputmode="numeric">
+          <select id="in-debton" style="width:auto" aria-label="Whose obligation">
+            <option value="conjugal">A conjugal / community obligation</option>
+            <option value="exclusive">The client's own obligation</option>
+          </select>
+        </div>
+        <span class="hint" style="max-width:52ch" id="debt-hint"></span>
+      </div>
+    </div>
+
+    <div class="derive" id="derive"></div>
+  </section>
+
+  <div class="flag no-print" id="cap-flag" style="display:none"></div>
+
+  <!-- ===================== RESULTS ===================== -->
+  <section class="results pbreak">
+    <article class="panel">
+      <div class="col-head"><h2>With a valid will</h2><span class="tag">Testamentary</span></div>
+      <div class="chartwrap" id="wrap-t"><svg id="pie-t" viewBox="0 0 240 240" role="img" aria-label="Distribution with a valid will"></svg><div class="tip" id="tip-t"></div></div>
+      <div class="legend" id="leg-t"></div>
+    </article>
+    <article class="panel">
+      <div class="col-head"><h2>With no will</h2><span class="tag">Intestate</span></div>
+      <div class="chartwrap" id="wrap-i"><svg id="pie-i" viewBox="0 0 240 240" role="img" aria-label="Distribution with no will"></svg><div class="tip" id="tip-i"></div></div>
+      <div class="legend" id="leg-i"></div>
+    </article>
+  </section>
+
+  <!-- ===================== TABLE ===================== -->
+  <section class="panel">
+    <div class="panel-head"><h2>Heir by heir, in pesos</h2><span class="eyebrow" id="table-caption"></span></div>
+    <div class="tablewrap">
+      <table id="cmp">
+        <thead><tr>
+          <th scope="col">Heir</th><th scope="col">With a valid will</th><th scope="col">Share</th>
+          <th scope="col">With no will</th><th scope="col">Share</th><th scope="col">Change</th>
+        </tr></thead>
+        <tbody id="cmp-body"></tbody>
+        <tfoot id="cmp-foot"></tfoot>
+      </table>
+    </div>
+  </section>
+
+  <!-- ===================== NOTES ===================== -->
+  <section class="panel">
+    <div class="notes">
+      <div class="note"><h3>Rules applied — with a will</h3><div id="notes-t"></div></div>
+      <div class="note"><h3>Rules applied — no will</h3><div id="notes-i"></div></div>
+    </div>
+  </section>
+
+
+
+  <!-- ===================== ESTATE TAX ===================== -->
+  <section class="panel pbreak">
+    <div class="panel-head"><h2>What the BIR takes</h2><span class="eyebrow" id="tax-caption"></span></div>
+    <div class="regime-bar">
+      <span class="badge" id="tax-badge">—</span>
+      <span class="why" id="tax-why"></span>
+    </div>
+    <div class="taxwrap">
+      <div class="ledger" id="ledger"></div>
+      <div class="taxside" id="taxside"></div>
+    </div>
+    <div class="optrow">
+      <div class="optcell">
+        <label for="in-death">Assumed date of death</label>
+        <input type="date" id="in-death" style="width:150px">
+        <span class="u" id="u-death"></span>
+      </div>
+      <div class="optcell wide">
+        <label for="in-fh">Family home</label>
+        <select id="in-fh"></select>
+        <span class="u" id="u-fh"></span>
+      </div>
+      <div class="optcell">
+        <label for="in-late">Months late</label>
+        <input type="text" class="num" id="in-late" value="0" inputmode="numeric">
+        <span class="u" id="u-late"></span>
+      </div>
+      <div class="optcell preonly"><label for="in-funeral">Funeral expenses</label><input type="text" class="num" id="in-funeral" value="0" inputmode="numeric"><span class="u">5% of gross, max ₱200,000</span></div>
+      <div class="optcell preonly"><label for="in-medical">Medical expenses</label><input type="text" class="num" id="in-medical" value="0" inputmode="numeric"><span class="u">Max ₱500,000</span></div>
+      <div class="optcell preonly"><label for="in-judicial">Judicial expenses</label><input type="text" class="num" id="in-judicial" value="0" inputmode="numeric"><span class="u">Settlement proceedings</span></div>
+    </div>
+  </section>
+
+  <!-- ===================== SETTLEMENT COSTS ===================== -->
+  <section class="panel pbreak">
+    <div class="panel-head">
+      <h2>What it costs to transfer it</h2>
+      <div class="optcell" style="flex-direction:row;align-items:center;gap:8px">
+        <label for="in-route" style="white-space:nowrap">Route</label>
+        <select id="in-route" style="width:auto">
+          <option value="ejs">Extrajudicial settlement</option>
+          <option value="judicial">Judicial settlement / probate</option>
+        </select>
+      </div>
+    </div>
+    <div class="tablewrap"><table class="routes" id="routes"></table></div>
+    <div class="optrow">
+      <div class="optcell"><label for="in-rtransfer">Local transfer tax</label><input type="text" class="num" id="in-rtransfer" value="0.75"><span class="u">0.5%–0.75% of real property</span></div>
+      <div class="optcell"><label for="in-rreg">Registration fee</label><input type="text" class="num" id="in-rreg" value="0.5"><span class="u">0.25%–0.5% to the RD</span></div>
+      <div class="optcell"><label for="in-rnot">Notarial fee</label><input type="text" class="num" id="in-rnot" value="1.5"><span class="u">1%–2% of gross estate, EJS</span></div>
+      <div class="optcell"><label for="in-rexec">Executor / administrator</label><input type="text" class="num" id="in-rexec" value="5"><span class="u">Up to 5%, judicial only</span></div>
+      <div class="optcell"><label for="in-pub">Publication</label><input type="text" class="num" id="in-pub" value="10,000"><span class="u">3 consecutive weeks</span></div>
+    </div>
+  </section>
+
+  <!-- ===================== WAIVERS ===================== -->
+  <section class="panel">
+    <div class="panel-head"><h2>If an heir refuses their share</h2><span class="eyebrow" id="waive-caption"></span></div>
+    <div class="waivebody">
+      <p class="liqsay" id="waive-say"></p>
+      <div class="wgrid" id="wgrid"></div>
+      <div id="waive-result"></div>
+    </div>
+  </section>
+
+  <!-- ===================== LIQUIDITY ===================== -->
+  <section class="panel pbreak">
+    <div class="panel-head"><h2>What the estate can actually pay</h2><span class="eyebrow" id="liq-caption"></span></div>
+    <div class="liqbody">
+      <div class="costrow">
+        <label for="in-other">Other cash the family needs</label>
+        <input type="text" class="num" id="in-other" value="0" inputmode="numeric">
+        <span class="hint" id="cost-hint"></span>
+      </div>
+      <div class="lbar" id="lbar"></div>
+      <div class="lkey" id="lkey"></div>
+      <p class="liqsay" id="liq-say"></p>
+    </div>
+  </section>
+
+  <!-- ===================== BEQUESTS ===================== -->
+  <section class="panel">
+    <div class="panel-head"><h2>What the will gives to whom</h2><span class="eyebrow">The estate's interest in each asset</span></div>
+    <div class="sched">
+      <div class="bqrow head"><span>Asset</span><span class="r">Estate's interest</span><span>Liquidity</span><span>Given to</span></div>
+      <div id="bq-rows"></div>
+      <div class="freebox">
+        <div class="freepick">
+          <label for="in-freeto">The free portion goes to</label>
+          <select id="in-freeto"></select>
+        </div>
+        <p class="liqsay" id="free-say"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== RECEIPTS + INSURANCE ===================== -->
+  <section class="panel pbreak">
+    <div class="panel-head"><h2>What each heir ends up holding</h2><span class="eyebrow" id="rec-caption"></span></div>
+    <div id="rec-flag"></div>
+    <div class="tablewrap">
+      <table id="rec">
+        <thead><tr>
+          <th scope="col">Heir</th><th scope="col">Fair share</th><th scope="col">Actually receives</th>
+          <th scope="col">Of which cash</th><th scope="col">Difference</th><th scope="col">Insurance needed</th>
+        </tr></thead>
+        <tbody id="rec-body"></tbody>
+      </table>
+    </div>
+    <div class="hbars" id="hbars"></div>
+    <div class="hbnote">
+      <span><i class="sw" style="background:var(--liq)"></i>Cash</span>
+      <span><i class="sw" style="background:var(--illiq)"></i>Property</span>
+      <span><i class="sw" style="background:var(--ins)"></i>Insurance proceeds</span>
+      <span><i class="sw" style="background:var(--ink);width:2px;height:12px;border-radius:0"></i>Fair share</span>
+    </div>
+    <div class="insure" id="insure">
+      <div class="ins-left">
+        <span class="cap">Life insurance that balances this plan</span>
+        <div class="covwrap"><span class="cur">₱</span><input id="in-cover" class="bignum-in num" inputmode="numeric" aria-label="Coverage amount"></div>
+        <div class="covstatus" id="cov-status"></div>
+        <div class="meter" id="cov-meter"><div class="fill"></div></div>
+        <p class="why" id="cov-why"></p>
+      </div>
+      <div class="ins-right">
+        <span class="cap">Where the coverage goes</span>
+        <ul id="cov-lines"></ul>
+      </div>
+    </div>
+    <div class="zero hidden" id="cov-zero"></div>
+  </section>
+
+  <footer>
+    Absent a marriage settlement, the regime follows the date of marriage: <b>before 3 August 1988</b> the Conjugal Partnership of Gains (Civil Code); on or after, the Absolute Community of Property (Family Code, Arts. 75 and 256). A valid pre-nuptial agreement overrides that default.
+    The spouse's exclusive property never enters the estate, and her half of the shared property is hers outright — not inheritance.
+    Collateral relatives are not modelled; they inherit only when no descendants, ascendants, spouse or illegitimate children survive.
+    Estate tax is not yet applied. This is a planning aid, not legal advice.
+  </footer>
+
+</div>

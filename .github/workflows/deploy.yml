@@ -1,5 +1,5 @@
-# Publishes the site to GitHub Pages on every push to main.
-# No build step: the app is plain ES modules, served as-is.
+# Builds the single-file app, runs the succession and tax tests, and publishes
+# to GitHub Pages. Nothing deploys unless the tests pass.
 name: Deploy to GitHub Pages
 
 on:
@@ -17,23 +17,22 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: '22' }
-      - name: Run the succession and tax test suite
-        run: npm test
-
-  deploy:
-    needs: test
+  build-and-deploy:
     runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '22' }
+
+      - name: Run the succession, tax and planning tests
+        run: npm test
+
+      - name: Build the single-file app
+        run: npm run build
+
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with: { path: '.' }
