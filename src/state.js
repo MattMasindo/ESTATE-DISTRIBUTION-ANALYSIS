@@ -1,8 +1,8 @@
 // Generated from the single-file prototype. Behaviour is identical; see test/engine.test.mjs.
 
 export const S = {
-  client:"Juan Dela Cruz",
-  spouse:true, spouseName:"Maria Dela Cruz", date:"1985-02-14", prenup:"none",
+  client:"Juan Dela Cruz", clientDob:"1952-04-09",
+  spouse:true, spouseName:"Maria Dela Cruz", spouseDob:"1958-11-22", date:"1985-02-14", prenup:"none",
   debts:0, debtOn:"conjugal", otherCash:0, freeTo:"prorata",
   coverMode:"auto", coverAmount:0,
   citizen:"resident", familyHome:3, monthsLate:0, route:"ejs",
@@ -18,8 +18,11 @@ export const S = {
     {name:"Joint Bank Account", note:"Savings",               value:2000000,  owner:"both",   acq:"onerous",    liq:"liquid",   to:"residue"},
     {name:"Philequity Fund",    note:"Mutual fund",           value:1500000,  owner:"both",   acq:"onerous",    liq:"liquid",   to:"residue"}
   ],
-  lc:["Juan Jr.","Ana Marie","Miguel"],
-  ilc:["Carlo","Beatriz"],
+  lc:[{name:"Juan Jr.", dob:"1988-07-03"},
+      {name:"Ana Marie", dob:"1991-02-18"},
+      {name:"Miguel",    dob:"1996-10-05"}],
+  ilc:[{name:"Carlo",   dob:"2012-06-14"},
+       {name:"Beatriz", dob:"2015-01-30"}],
   lp:[]
 };
 

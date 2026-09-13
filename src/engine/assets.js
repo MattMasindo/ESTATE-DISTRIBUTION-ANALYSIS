@@ -2,7 +2,7 @@
 
 import { S } from "../state.js";
 import { bucket } from "./regime.js";
-import { heirName, ROLE } from "../format.js";
+import { heirName, ROLE, dobOf } from "../format.js";
 
 // What the estate actually owns of each property: the client's exclusive
 // share in full, plus half of anything in the conjugal / community pot.
@@ -24,7 +24,8 @@ function roster(t){
     for (var j=0;j<t.groups.length;j++) if (t.groups[j].key === k) g = t.groups[j];
     if (!g) return;
     for (var x=0;x<g.count;x++)
-      out.push({ id:k+":"+x, key:k, name:heirName(k,x), role:ROLE[k], legitime:g.each });
+      out.push({ id:k+":"+x, key:k, name:heirName(k,x), role:ROLE[k], legitime:g.each,
+                 dob: k === "ss" ? S.spouseDob : dobOf((S[k] || [])[x]) });
   });
   return out;
 }

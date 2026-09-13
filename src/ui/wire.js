@@ -31,8 +31,12 @@ $("add-prop").addEventListener("click", function(){
 
 ["lc","ilc","lp"].forEach(function(key){
   $("list-"+key).addEventListener("input", function(e){
-    var inp = e.target.closest("input[data-hkey]"); if (!inp) return;
-    S[key][+inp.dataset.hi] = inp.value; render();
+    var inp = e.target.closest("input[data-hkey], input[data-hdob]"); if (!inp) return;
+    var i = +inp.dataset.hi, cur = S[key][i];
+    // normalise a legacy plain-string entry the first time it is edited
+    if (typeof cur === "string" || !cur) cur = S[key][i] = { name: cur || "", dob: "" };
+    if (inp.dataset.hdob) cur.dob = inp.value; else cur.name = inp.value;
+    render();
   });
   $("list-"+key).addEventListener("click", function(e){
     var b = e.target.closest("[data-hkill]"); if (!b) return;
@@ -43,13 +47,15 @@ document.querySelectorAll("[data-add]").forEach(function(btn){
   btn.addEventListener("click", function(){
     var key = btn.dataset.add;
     if (key === "lp" && S.lp.length >= 2) return;
-    S[key].push(""); renderHeirList(key); render();
+    S[key].push({ name:"", dob:"" }); renderHeirList(key); render();
     var ins = $("list-"+key).querySelectorAll("input");
     if (ins.length) ins[ins.length-1].focus();
   });
 });
 
 $("in-client").addEventListener("input", function(e){ S.client = e.target.value; render(); });
+  $("in-clientdob").addEventListener("change", function(e){ S.clientDob = e.target.value; render(); });
+  $("in-spousedob").addEventListener("change", function(e){ S.spouseDob = e.target.value; render(); });
 $("in-spousename").addEventListener("input", function(e){ S.spouseName = e.target.value; render(); });
 $("in-spouse").addEventListener("change", function(e){ S.spouse = e.target.checked; render(); });
 $("in-date").addEventListener("change", function(e){ S.date = e.target.value; render(); });
@@ -120,6 +126,9 @@ $("wgrid").addEventListener("change", function(e){
 
 $("btn-print").addEventListener("click", function(){ window.print(); });
   $("btn-pdf").addEventListener("click", function(e){ downloadPdf(e.currentTarget); });
+
+$("in-clientdob").value = S.clientDob || "";
+$("in-spousedob").value = S.spouseDob || "";
 
 $("prep-date").textContent = new Date().toLocaleDateString("en-PH", {day:"numeric", month:"long", year:"numeric"});
 (function(){

@@ -392,3 +392,59 @@ describe("an heir who refuses their share", () => {
     peso(heir(P, "Juan Jr.").shortBase, 0, "he chose it");
   });
 });
+
+describe("ages and minor heirs", () => {
+  const shape = {
+    props: solo(30 * M), deathDate: "2026-09-13",
+    clientDob: "1952-04-09", spouseDob: "1958-11-22",
+    lc: [{ name: "Adult", dob: "1988-07-03" }, { name: "Teen", dob: "2012-06-14" }],
+    ilc: [{ name: "Child", dob: "2015-01-30" }]
+  };
+
+  test("age is measured at the assumed date of death, not today", () => {
+    const a = setup(shape).P;
+    assert.equal(a.clientAge, 74, "client at the assumed date");
+    // push the death 10 years out and everyone ages with it
+    const b = setup({ ...shape, deathDate: "2036-09-13" }).P;
+    assert.equal(b.clientAge, 84);
+    assert.equal(b.hasMinor, false, "both children are adults by then");
+  });
+
+  test("a birthday not yet reached does not count", () => {
+    const p = setup({ ...shape, deathDate: "2026-06-13",
+                      lc: [{ name: "Adult", dob: "1988-07-03" }] }).P;
+    assert.equal(heir(p, "Adult").age, 37, "37 until 3 July");
+  });
+
+  test("minors are identified with the time left to majority", () => {
+    const { P } = setup(shape);
+    assert.equal(P.hasMinor, true);
+    assert.deepEqual(P.minors.map(h => h.name), ["Teen", "Child"]);
+    assert.equal(heir(P, "Teen").age, 14);
+    assert.equal(heir(P, "Teen").yearsToMajority, 4);
+    assert.equal(heir(P, "Child").yearsToMajority, 7);
+    assert.equal(heir(P, "Adult").isMinor, false);
+  });
+
+  test("a missing date of birth is unknown, never assumed to be a minor", () => {
+    const { P } = setup({ ...shape, lc: [{ name: "Nodob", dob: "" }], ilc: [] });
+    assert.equal(heir(P, "Nodob").age, null);
+    assert.equal(heir(P, "Nodob").isMinor, false);
+    assert.equal(P.hasMinor, false);
+  });
+
+  test("heirs saved as plain strings still load", () => {
+    const { P } = setup({ props: solo(30 * M), lc: ["Legacy A", "Legacy B"], ilc: [] });
+    assert.deepEqual(P.heirs.filter(h => h.key === "lc").map(h => h.name), ["Legacy A", "Legacy B"]);
+    assert.equal(P.hasMinor, false, "no date means no claim either way");
+    peso(heir(P, "Legacy A").legitime, 7.5 * M, "and the legitimes are unaffected");
+  });
+
+  test("age changes nothing about the shares themselves", () => {
+    const withDates = setup(shape).P;
+    const without = setup({ ...shape, clientDob: "", spouseDob: "",
+      lc: [{ name: "Adult" }, { name: "Teen" }], ilc: [{ name: "Child" }] }).P;
+    withDates.heirs.forEach((h, i) =>
+      peso(h.receives, without.heirs[i].receives, h.name + " receives the same"));
+  });
+});

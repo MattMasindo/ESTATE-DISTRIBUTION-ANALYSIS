@@ -1,6 +1,7 @@
 // Generated from the single-file prototype. Behaviour is identical; see test/engine.test.mjs.
 
 import { S } from "../state.js";
+import { ageAt } from "../format.js";
 import { estateRows, roster } from "./assets.js";
 import { taxes, DONOR_EXEMPT } from "./tax.js";
 
@@ -10,6 +11,15 @@ function plan(E, t, reg){
 
   var T = 0, liqTotal = 0;
   rows.forEach(function(r){ T += r.est; if (r.liq) liqTotal += r.est; });
+
+  // Age decides whether an extrajudicial settlement is even open to this family:
+  // Rule 74 needs every heir to be of legal age, or a court-appointed guardian.
+  heirs.forEach(function(h){
+    h.age = ageAt(h.dob, S.deathDate);
+    h.isMinor = h.age !== null && h.age < 18;
+    h.yearsToMajority = h.isMinor ? 18 - h.age : 0;
+  });
+  var minors = heirs.filter(function(h){ return h.isMinor; });
 
   var sumL = heirs.reduce(function(a,h){ return a + h.legitime; }, 0);
   heirs.forEach(function(h){
@@ -129,7 +139,9 @@ function plan(E, t, reg){
            equalize:equalize, impaired:impaired, impairedCount:impairedCount,
            coverage:equalize + liqShort, anyGift:assignedTotal > 0.5,
            tax:X, donorsTax:donorsTax, waivers:waivers,
-           freePool:freePool, freeTo:freeTo, freeOutside:freeOutside, sumL:sumL, floorTotal:sumL };
+           freePool:freePool, freeTo:freeTo, freeOutside:freeOutside, sumL:sumL, floorTotal:sumL,
+           minors:minors, hasMinor:minors.length > 0,
+           clientAge: ageAt(S.clientDob, S.deathDate) };
 }
 
 export { plan };

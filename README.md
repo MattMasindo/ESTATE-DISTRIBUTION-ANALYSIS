@@ -21,6 +21,7 @@ Built for **Battle River** by Matthew Isaiah Masindo, Certified Trust and Estate
 | **Settlement cost** | Judicial versus extrajudicial, with the donor's tax trap when an heir waives a share to a named person. |
 | **Liquidity** | Cash against what settlement actually needs, and what each heir receives in cash versus a claim on property. |
 | **The equalizer** | Sizes the life insurance that closes the gap when a specific gift leaves the other heirs short. |
+| **Ages** | Date of birth for everyone involved, with age measured at the assumed date of death — which is what decides whether extrajudicial settlement is open to the family at all. |
 | **Download PDF** | One click produces an 8-page client pack named after the client — no print dialog. |
 
 Everything runs in the browser. No account, no server, nothing leaves the page.
@@ -163,7 +164,9 @@ schedule; disinheritance; collation of lifetime advances; representation by
 grandchildren; and chained waivers.
 
 Residue is apportioned pro rata to the legitimes, and debts are assumed settled
-from liquid assets first.
+from liquid assets first. Age affects the *process* — Rule 74 settlement and
+guardianship of a minor's property — never the shares themselves, which Philippine
+law does not vary by age.
 
 **This is a planning aid, not legal advice.** Settle every actual estate with counsel.
 

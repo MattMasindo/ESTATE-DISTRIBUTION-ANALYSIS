@@ -48,6 +48,7 @@
       <div class="group">
         <span class="lbl">Client</span>
         <input type="text" id="in-client" value="Juan Dela Cruz" placeholder="Full name" aria-label="Name of the client">
+        <div class="dobline"><input type="date" id="in-clientdob" aria-label="Date of birth"><span class="age" id="age-client"></span></div>
         <span class="hint">Whose estate is being planned.</span>
       </div>
 
@@ -56,6 +57,7 @@
         <div class="check"><input type="checkbox" id="in-spouse" checked><label for="in-spouse">Married, spouse survives</label></div>
         <div id="spouse-fields" class="stack" style="gap:8px">
           <input type="text" id="in-spousename" value="Maria Dela Cruz" placeholder="Full name" aria-label="Name of the spouse">
+          <div class="dobline"><input type="date" id="in-spousedob" aria-label="Date of birth"><span class="age" id="age-spouse"></span></div>
           <div class="stack">
             <label class="hint" for="in-date" style="font-weight:600;color:var(--ink-2)">Date of marriage</label>
             <input type="date" id="in-date" value="1985-02-14">
@@ -227,6 +229,7 @@
         </select>
       </div>
     </div>
+    <div id="minor-route"></div>
     <div class="tablewrap"><table class="routes" id="routes"></table></div>
     <div class="optrow">
       <div class="optcell"><label for="in-rtransfer">Local transfer tax</label><input type="text" class="num" id="in-rtransfer" value="0.75"><span class="u">0.5%–0.75% of real property</span></div>
@@ -298,6 +301,7 @@
       <span><i class="sw" style="background:var(--ins)"></i>Insurance proceeds</span>
       <span><i class="sw" style="background:var(--ink);width:2px;height:12px;border-radius:0"></i>Fair share</span>
     </div>
+    <div id="minor-benef"></div>
     <div class="insure" id="insure">
       <div class="ins-left">
         <span class="cap">Life insurance that balances this plan</span>

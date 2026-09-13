@@ -509,6 +509,14 @@ button.ghost.primary{background:var(--accent);border-color:var(--accent);color:#
 button.ghost.primary:hover{filter:brightness(1.1);color:#fff}
 button.ghost:disabled{opacity:.6;cursor:default}
 
+/* ---------- dates of birth ---------- */
+.person{display:flex;flex-direction:column;gap:3px}
+.dobline{display:flex;align-items:center;gap:8px;padding-left:20px}
+.group > .dobline{padding-left:0}
+.dobline input[type=date]{font-size:12px;padding:4px 7px;flex:1 1 auto;min-width:0}
+.age{font-size:11px;color:var(--ink-3);white-space:nowrap;flex:none}
+.age.minor{color:var(--seal);font-weight:600}
+
 /* ---------- derived from @media print, for PDF export ---------- */
 body.exporting body{background:#fff;font-size:10.5px}
 body.exporting .wrap{padding:0;max-width:none;gap:10px}
@@ -621,6 +629,7 @@ body.exporting .sched.no-spouse .ptot{grid-template-columns:2fr 1fr 20px}
       <div class="group">
         <span class="lbl">Client</span>
         <input type="text" id="in-client" value="Juan Dela Cruz" placeholder="Full name" aria-label="Name of the client">
+        <div class="dobline"><input type="date" id="in-clientdob" aria-label="Date of birth"><span class="age" id="age-client"></span></div>
         <span class="hint">Whose estate is being planned.</span>
       </div>
 
@@ -629,6 +638,7 @@ body.exporting .sched.no-spouse .ptot{grid-template-columns:2fr 1fr 20px}
         <div class="check"><input type="checkbox" id="in-spouse" checked><label for="in-spouse">Married, spouse survives</label></div>
         <div id="spouse-fields" class="stack" style="gap:8px">
           <input type="text" id="in-spousename" value="Maria Dela Cruz" placeholder="Full name" aria-label="Name of the spouse">
+          <div class="dobline"><input type="date" id="in-spousedob" aria-label="Date of birth"><span class="age" id="age-spouse"></span></div>
           <div class="stack">
             <label class="hint" for="in-date" style="font-weight:600;color:var(--ink-2)">Date of marriage</label>
             <input type="date" id="in-date" value="1985-02-14">
@@ -800,6 +810,7 @@ body.exporting .sched.no-spouse .ptot{grid-template-columns:2fr 1fr 20px}
         </select>
       </div>
     </div>
+    <div id="minor-route"></div>
     <div class="tablewrap"><table class="routes" id="routes"></table></div>
     <div class="optrow">
       <div class="optcell"><label for="in-rtransfer">Local transfer tax</label><input type="text" class="num" id="in-rtransfer" value="0.75"><span class="u">0.5%–0.75% of real property</span></div>
@@ -871,6 +882,7 @@ body.exporting .sched.no-spouse .ptot{grid-template-columns:2fr 1fr 20px}
       <span><i class="sw" style="background:var(--ins)"></i>Insurance proceeds</span>
       <span><i class="sw" style="background:var(--ink);width:2px;height:12px;border-radius:0"></i>Fair share</span>
     </div>
+    <div id="minor-benef"></div>
     <div class="insure" id="insure">
       <div class="ins-left">
         <span class="cap">Life insurance that balances this plan</span>
@@ -924,8 +936,8 @@ const SUPABASE_ANON_KEY = null; // e.g. "eyJhbGciOi..."
 // Generated from the single-file prototype. Behaviour is identical; see test/engine.test.mjs.
 
 const S = {
-  client:"Juan Dela Cruz",
-  spouse:true, spouseName:"Maria Dela Cruz", date:"1985-02-14", prenup:"none",
+  client:"Juan Dela Cruz", clientDob:"1952-04-09",
+  spouse:true, spouseName:"Maria Dela Cruz", spouseDob:"1958-11-22", date:"1985-02-14", prenup:"none",
   debts:0, debtOn:"conjugal", otherCash:0, freeTo:"prorata",
   coverMode:"auto", coverAmount:0,
   citizen:"resident", familyHome:3, monthsLate:0, route:"ejs",
@@ -941,8 +953,11 @@ const S = {
     {name:"Joint Bank Account", note:"Savings",               value:2000000,  owner:"both",   acq:"onerous",    liq:"liquid",   to:"residue"},
     {name:"Philequity Fund",    note:"Mutual fund",           value:1500000,  owner:"both",   acq:"onerous",    liq:"liquid",   to:"residue"}
   ],
-  lc:["Juan Jr.","Ana Marie","Miguel"],
-  ilc:["Carlo","Beatriz"],
+  lc:[{name:"Juan Jr.", dob:"1988-07-03"},
+      {name:"Ana Marie", dob:"1991-02-18"},
+      {name:"Miguel",    dob:"1996-10-05"}],
+  ilc:[{name:"Carlo",   dob:"2012-06-14"},
+       {name:"Beatriz", dob:"2015-01-30"}],
   lp:[]
 };
 
@@ -983,9 +998,26 @@ var esc = function(s){ return String(s).replace(/[&<>"]/g, function(c){ return {
 var client = function(){ return S.client.trim() || "the client"; };
 var spouseWho = function(){ return S.spouseName.trim() || "the spouse"; };
 var firstName = function(s){ return (s.trim().split(/\s+/)[0]) || s; };
+// A person is stored as {name, dob}. Plain strings are still accepted so that
+// cases saved before dates of birth existed keep loading.
+var nameOf = function(e){ return (typeof e === "string" ? e : (e && e.name) || "").trim(); };
+var dobOf  = function(e){ return typeof e === "string" ? "" : (e && e.dob) || ""; };
+
+// Age is measured at the ASSUMED DATE OF DEATH, not today — a child who is a
+// minor now may well be of age by the time the estate is actually settled.
+var ageAt = function(dob, onISO){
+  if (!dob) return null;
+  var born = new Date(dob), on = new Date(onISO || Date.now());
+  if (isNaN(born) || isNaN(on)) return null;
+  var years = on.getFullYear() - born.getFullYear();
+  var m = on.getMonth() - born.getMonth();
+  if (m < 0 || (m === 0 && on.getDate() < born.getDate())) years--;
+  return years;
+};
+
 var heirName = function(key, i){
   if (key === "ss") return spouseWho();
-  var n = ((S[key] || [])[i] || "").trim();
+  var n = nameOf((S[key] || [])[i]);
   if (n) return n;
   return key === "lc" ? "Legitimate child " + (i+1) : key === "ilc" ? "Illegitimate child " + (i+1) : "Parent " + (i+1);
 };
@@ -1202,7 +1234,8 @@ function roster(t){
     for (var j=0;j<t.groups.length;j++) if (t.groups[j].key === k) g = t.groups[j];
     if (!g) return;
     for (var x=0;x<g.count;x++)
-      out.push({ id:k+":"+x, key:k, name:heirName(k,x), role:ROLE[k], legitime:g.each });
+      out.push({ id:k+":"+x, key:k, name:heirName(k,x), role:ROLE[k], legitime:g.each,
+                 dob: k === "ss" ? S.spouseDob : dobOf((S[k] || [])[x]) });
   });
   return out;
 }
@@ -1327,12 +1360,22 @@ function taxes(reg){
 
 
 
+
 function plan(E, t, reg){
   var rows = estateRows(reg), heirs = roster(t), byId = {};
   heirs.forEach(function(h){ byId[h.id] = h; });
 
   var T = 0, liqTotal = 0;
   rows.forEach(function(r){ T += r.est; if (r.liq) liqTotal += r.est; });
+
+  // Age decides whether an extrajudicial settlement is even open to this family:
+  // Rule 74 needs every heir to be of legal age, or a court-appointed guardian.
+  heirs.forEach(function(h){
+    h.age = ageAt(h.dob, S.deathDate);
+    h.isMinor = h.age !== null && h.age < 18;
+    h.yearsToMajority = h.isMinor ? 18 - h.age : 0;
+  });
+  var minors = heirs.filter(function(h){ return h.isMinor; });
 
   var sumL = heirs.reduce(function(a,h){ return a + h.legitime; }, 0);
   heirs.forEach(function(h){
@@ -1452,7 +1495,9 @@ function plan(E, t, reg){
            equalize:equalize, impaired:impaired, impairedCount:impairedCount,
            coverage:equalize + liqShort, anyGift:assignedTotal > 0.5,
            tax:X, donorsTax:donorsTax, waivers:waivers,
-           freePool:freePool, freeTo:freeTo, freeOutside:freeOutside, sumL:sumL, floorTotal:sumL };
+           freePool:freePool, freeTo:freeTo, freeOutside:freeOutside, sumL:sumL, floorTotal:sumL,
+           minors:minors, hasMinor:minors.length > 0,
+           clientAge: ageAt(S.clientDob, S.deathDate) };
 }
 
 // ---------- src/export.js ----------
@@ -1758,10 +1803,15 @@ function renderChips(){
 function renderHeirList(key){
   var list = S[key];
   $("list-"+key).innerHTML = list.length
-    ? list.map(function(n,i){
-        return '<div class="namerow"><span class="ord">'+(i+1)+'</span>'
-          + '<input type="text" data-hkey="'+key+'" data-hi="'+i+'" value="'+esc(n)+'" placeholder="Name" aria-label="Name">'
-          + '<button class="kill no-print" type="button" data-hkill="'+key+'" data-hi="'+i+'" aria-label="Remove">×</button></div>';
+    ? list.map(function(e,i){
+        return '<div class="person">'
+          + '<div class="namerow"><span class="ord">'+(i+1)+'</span>'
+            + '<input type="text" data-hkey="'+key+'" data-hi="'+i+'" value="'+esc(nameOf(e))+'" placeholder="Name" aria-label="Name">'
+            + '<button class="kill no-print" type="button" data-hkill="'+key+'" data-hi="'+i+'" aria-label="Remove">×</button></div>'
+          + '<div class="dobline">'
+            + '<input type="date" data-hdob="'+key+'" data-hi="'+i+'" value="'+esc(dobOf(e))+'" aria-label="Date of birth">'
+            + '<span class="age" data-age="'+key+':'+i+'"></span></div>'
+          + '</div>';
       }).join("")
     : '<p class="empty">None surviving</p>';
 }
@@ -2127,6 +2177,56 @@ function renderWaivers(P){
   $("waive-result").innerHTML = out;
 }
 
+
+/* ---------- ages, and what being a minor actually blocks ---------- */
+function renderAges(P){
+  var say = function(age){
+    if (age === null) return "";
+    if (age < 0) return "not yet born";
+    return age + (age < 18 ? " — a minor" : "");
+  };
+  var put = function(el, age){
+    if (!el) return;
+    el.textContent = say(age);
+    el.classList.toggle("minor", age !== null && age >= 0 && age < 18);
+  };
+  put($("age-client"), P.clientAge);
+  put($("age-spouse"), S.spouse ? ageAt(S.spouseDob, S.deathDate) : null);
+  P.heirs.forEach(function(h){
+    if (h.key === "ss") return;
+    put(document.querySelector('[data-age="' + h.id + '"]'), h.age);
+  });
+
+  var names = P.minors.map(function(h){ return esc(h.name) + " (" + h.age + ")"; }).join(", ");
+  var plural = P.minors.length > 1;
+
+  // Rule 74: an extrajudicial settlement needs every heir to be of legal age.
+  var route = $("minor-route");
+  if (route){
+    route.innerHTML = P.hasMinor
+      ? '<div class="flag"><b>A minor heir is involved.</b>&nbsp;' + names
+        + (plural ? ' are' : ' is') + ' under 18 at the assumed date of death. Under Rule 74 an extrajudicial settlement '
+        + 'needs every heir to be of legal age, so this family cannot use it unless the court appoints a guardian to sign for '
+        + (plural ? 'them' : 'him or her') + ' — which costs time and most of the saving. Price the judicial route until that is resolved.'
+        + (P.minors.length ? ' ' + esc(P.minors[0].name) + ' reaches 18 in ' + P.minors[0].yearsToMajority + ' year'
+            + (P.minors[0].yearsToMajority === 1 ? '' : 's') + '.' : '')
+        + '</div>'
+      : "";
+  }
+
+  // Family Code Art. 225: parents administer a child's property only up to P50,000.
+  var ins = $("minor-benef");
+  if (ins){
+    var big = P.minors.filter(function(h){ return h.shortBase > 50000; });
+    ins.innerHTML = big.length
+      ? '<div class="flag" style="margin-top:12px"><b>Proceeds to a minor need somewhere to land.</b>&nbsp;'
+        + big.map(function(h){ return esc(h.name) + " (" + h.age + ") is allocated " + peso(h.shortBase); }).join("; ")
+        + '. Under Family Code Art. 225 a parent administers a child\'s property only up to ₱50,000 — above that the court '
+        + 'appoints a guardian and requires a bond. Name a trust, or a guardian of the property, rather than the child directly.</div>'
+      : "";
+  }
+}
+
 /* ---------- the summary sheet ---------- */
 function renderSummary(P, L, E, reg, t, i){
   var X = P.tax;
@@ -2230,6 +2330,7 @@ function render(){
   renderFreePortion(P, E);
   renderReceipts(P, E);
   renderSummary(P, L, E, reg, t, i);
+  renderAges(P);
 
   var msg = t.cap || i.cap, flag = $("cap-flag");
   if (msg){ flag.innerHTML = '<b>Legitime floor reached.</b>&nbsp;' + esc(msg); flag.style.display = "flex"; }
@@ -2269,8 +2370,12 @@ $("add-prop").addEventListener("click", function(){
 
 ["lc","ilc","lp"].forEach(function(key){
   $("list-"+key).addEventListener("input", function(e){
-    var inp = e.target.closest("input[data-hkey]"); if (!inp) return;
-    S[key][+inp.dataset.hi] = inp.value; render();
+    var inp = e.target.closest("input[data-hkey], input[data-hdob]"); if (!inp) return;
+    var i = +inp.dataset.hi, cur = S[key][i];
+    // normalise a legacy plain-string entry the first time it is edited
+    if (typeof cur === "string" || !cur) cur = S[key][i] = { name: cur || "", dob: "" };
+    if (inp.dataset.hdob) cur.dob = inp.value; else cur.name = inp.value;
+    render();
   });
   $("list-"+key).addEventListener("click", function(e){
     var b = e.target.closest("[data-hkill]"); if (!b) return;
@@ -2281,13 +2386,15 @@ document.querySelectorAll("[data-add]").forEach(function(btn){
   btn.addEventListener("click", function(){
     var key = btn.dataset.add;
     if (key === "lp" && S.lp.length >= 2) return;
-    S[key].push(""); renderHeirList(key); render();
+    S[key].push({ name:"", dob:"" }); renderHeirList(key); render();
     var ins = $("list-"+key).querySelectorAll("input");
     if (ins.length) ins[ins.length-1].focus();
   });
 });
 
 $("in-client").addEventListener("input", function(e){ S.client = e.target.value; render(); });
+  $("in-clientdob").addEventListener("change", function(e){ S.clientDob = e.target.value; render(); });
+  $("in-spousedob").addEventListener("change", function(e){ S.spouseDob = e.target.value; render(); });
 $("in-spousename").addEventListener("input", function(e){ S.spouseName = e.target.value; render(); });
 $("in-spouse").addEventListener("change", function(e){ S.spouse = e.target.checked; render(); });
 $("in-date").addEventListener("change", function(e){ S.date = e.target.value; render(); });
@@ -2358,6 +2465,9 @@ $("wgrid").addEventListener("change", function(e){
 
 $("btn-print").addEventListener("click", function(){ window.print(); });
   $("btn-pdf").addEventListener("click", function(e){ downloadPdf(e.currentTarget); });
+
+$("in-clientdob").value = S.clientDob || "";
+$("in-spousedob").value = S.spouseDob || "";
 
 $("prep-date").textContent = new Date().toLocaleDateString("en-PH", {day:"numeric", month:"long", year:"numeric"});
 (function(){

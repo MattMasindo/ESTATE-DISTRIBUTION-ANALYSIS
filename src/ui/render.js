@@ -1,7 +1,8 @@
 // Generated from the single-file prototype. Behaviour is identical; see test/engine.test.mjs.
 
 import { S, $, ACQ } from "../state.js";
-import { peso, pct, frac, commafy, esc, client, spouseWho, firstName, heirName, ROLE } from "../format.js";
+import { peso, pct, frac, commafy, esc, client, spouseWho, firstName, heirName, ROLE,
+         nameOf, dobOf, ageAt } from "../format.js";
 import { regime, REGIME_NAME, bucket, totals, liquidate } from "../engine/regime.js";
 import { testate, intestate } from "../engine/succession.js";
 import { plan } from "../engine/plan.js";
@@ -131,10 +132,15 @@ function renderChips(){
 function renderHeirList(key){
   var list = S[key];
   $("list-"+key).innerHTML = list.length
-    ? list.map(function(n,i){
-        return '<div class="namerow"><span class="ord">'+(i+1)+'</span>'
-          + '<input type="text" data-hkey="'+key+'" data-hi="'+i+'" value="'+esc(n)+'" placeholder="Name" aria-label="Name">'
-          + '<button class="kill no-print" type="button" data-hkill="'+key+'" data-hi="'+i+'" aria-label="Remove">×</button></div>';
+    ? list.map(function(e,i){
+        return '<div class="person">'
+          + '<div class="namerow"><span class="ord">'+(i+1)+'</span>'
+            + '<input type="text" data-hkey="'+key+'" data-hi="'+i+'" value="'+esc(nameOf(e))+'" placeholder="Name" aria-label="Name">'
+            + '<button class="kill no-print" type="button" data-hkill="'+key+'" data-hi="'+i+'" aria-label="Remove">×</button></div>'
+          + '<div class="dobline">'
+            + '<input type="date" data-hdob="'+key+'" data-hi="'+i+'" value="'+esc(dobOf(e))+'" aria-label="Date of birth">'
+            + '<span class="age" data-age="'+key+':'+i+'"></span></div>'
+          + '</div>';
       }).join("")
     : '<p class="empty">None surviving</p>';
 }
@@ -500,6 +506,56 @@ function renderWaivers(P){
   $("waive-result").innerHTML = out;
 }
 
+
+/* ---------- ages, and what being a minor actually blocks ---------- */
+function renderAges(P){
+  var say = function(age){
+    if (age === null) return "";
+    if (age < 0) return "not yet born";
+    return age + (age < 18 ? " — a minor" : "");
+  };
+  var put = function(el, age){
+    if (!el) return;
+    el.textContent = say(age);
+    el.classList.toggle("minor", age !== null && age >= 0 && age < 18);
+  };
+  put($("age-client"), P.clientAge);
+  put($("age-spouse"), S.spouse ? ageAt(S.spouseDob, S.deathDate) : null);
+  P.heirs.forEach(function(h){
+    if (h.key === "ss") return;
+    put(document.querySelector('[data-age="' + h.id + '"]'), h.age);
+  });
+
+  var names = P.minors.map(function(h){ return esc(h.name) + " (" + h.age + ")"; }).join(", ");
+  var plural = P.minors.length > 1;
+
+  // Rule 74: an extrajudicial settlement needs every heir to be of legal age.
+  var route = $("minor-route");
+  if (route){
+    route.innerHTML = P.hasMinor
+      ? '<div class="flag"><b>A minor heir is involved.</b>&nbsp;' + names
+        + (plural ? ' are' : ' is') + ' under 18 at the assumed date of death. Under Rule 74 an extrajudicial settlement '
+        + 'needs every heir to be of legal age, so this family cannot use it unless the court appoints a guardian to sign for '
+        + (plural ? 'them' : 'him or her') + ' — which costs time and most of the saving. Price the judicial route until that is resolved.'
+        + (P.minors.length ? ' ' + esc(P.minors[0].name) + ' reaches 18 in ' + P.minors[0].yearsToMajority + ' year'
+            + (P.minors[0].yearsToMajority === 1 ? '' : 's') + '.' : '')
+        + '</div>'
+      : "";
+  }
+
+  // Family Code Art. 225: parents administer a child's property only up to P50,000.
+  var ins = $("minor-benef");
+  if (ins){
+    var big = P.minors.filter(function(h){ return h.shortBase > 50000; });
+    ins.innerHTML = big.length
+      ? '<div class="flag" style="margin-top:12px"><b>Proceeds to a minor need somewhere to land.</b>&nbsp;'
+        + big.map(function(h){ return esc(h.name) + " (" + h.age + ") is allocated " + peso(h.shortBase); }).join("; ")
+        + '. Under Family Code Art. 225 a parent administers a child\'s property only up to ₱50,000 — above that the court '
+        + 'appoints a guardian and requires a bond. Name a trust, or a guardian of the property, rather than the child directly.</div>'
+      : "";
+  }
+}
+
 /* ---------- the summary sheet ---------- */
 function renderSummary(P, L, E, reg, t, i){
   var X = P.tax;
@@ -603,6 +659,7 @@ function render(){
   renderFreePortion(P, E);
   renderReceipts(P, E);
   renderSummary(P, L, E, reg, t, i);
+  renderAges(P);
 
   var msg = t.cap || i.cap, flag = $("cap-flag");
   if (msg){ flag.innerHTML = '<b>Legitime floor reached.</b>&nbsp;' + esc(msg); flag.style.display = "flex"; }
