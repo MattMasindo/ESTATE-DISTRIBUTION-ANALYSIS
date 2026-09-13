@@ -1,7 +1,9 @@
-# Philippine Estate Distribution Calculator
+# Estate Distribution Analysis
 
-An estate-planning tool for Philippine succession. Enter a client's properties and
-heirs; it computes the compulsory legitimes, the intestate shares, the estate tax,
+*Philippine succession, estate tax and the insurance equalizer.*
+
+An estate-planning analysis for Philippine succession. Enter a client's properties
+and heirs; it computes the compulsory legitimes, the intestate shares, the estate tax,
 the cost of settlement, and the life insurance needed to balance an uneven plan —
 then prints a client-facing one-pager.
 
@@ -49,7 +51,7 @@ the thing you edit and test; this is just what ships.
 ## The PDF export
 
 **Download PDF** builds the whole client pack as a file and saves it as
-`Estate Plan - <client> - <date>.pdf`. No print dialog, no naming it yourself.
+`Estate Distribution Analysis - <client> - <date>.pdf`. No print dialog, no naming it yourself.
 
 Two things make it work, and both are worth knowing before you touch them:
 

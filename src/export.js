@@ -66,7 +66,7 @@ function freezeCharts() {
 const fileName = () => {
   const who = (client() || "Estate plan").replace(/[\\/:*?"<>|]/g, "").trim();
   const when = new Date().toISOString().slice(0, 10);
-  return `Estate Plan - ${who} - ${when}.pdf`;
+  return `Estate Distribution Analysis - ${who} - ${when}.pdf`;
 };
 
 export async function downloadPdf(btn) {

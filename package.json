@@ -1,7 +1,7 @@
 {
   "name": "estate-distribution-calculator",
   "version": "1.0.0",
-  "description": "Philippine estate distribution calculator — legitimes, intestate shares, estate tax and the insurance equalizer",
+  "description": "Estate Distribution Analysis — Philippine legitimes, intestate shares, estate tax and the insurance equalizer",
   "type": "module",
   "private": true,
   "scripts": {

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Philippine Estate Distribution Calculator</title>
+<title>Estate Distribution Analysis</title>
 <meta name="description" content="Compulsory legitimes, intestate shares, estate tax and the insurance equalizer, under the Civil Code and Family Code of the Philippines.">
 <meta name="color-scheme" content="light dark">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>%E2%9A%96%EF%B8%8F</text></svg>">
@@ -575,8 +575,8 @@ body.exporting .sched.no-spouse .ptot{grid-template-columns:2fr 1fr 20px}
   <div class="masthead">
     <div>
       <div class="eyebrow">Civil Code &amp; Family Code of the Philippines</div>
-      <h1>Estate Distribution Calculator</h1>
-      <p class="sub">Name the client, schedule the properties, list the heirs. The compulsory legitimes, the free portion and the intestate shares are computed side by side.</p>
+      <h1>Estate Distribution Analysis</h1>
+      <p class="sub no-print">Name the client, schedule the properties, list the heirs. The compulsory legitimes, the free portion and the intestate shares are computed side by side.</p>
     </div>
     <div class="stack" style="align-items:flex-end">
       <div class="prep">
@@ -1523,7 +1523,7 @@ function freezeCharts() {
 const fileName = () => {
   const who = (client() || "Estate plan").replace(/[\\/:*?"<>|]/g, "").trim();
   const when = new Date().toISOString().slice(0, 10);
-  return `Estate Plan - ${who} - ${when}.pdf`;
+  return `Estate Distribution Analysis - ${who} - ${when}.pdf`;
 };
 
 async function downloadPdf(btn) {
