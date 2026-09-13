@@ -7,7 +7,7 @@
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 
-import { buildIntake, applyIntake } from "../src/intake.js";
+import { buildIntake, applyIntake, commafyInput, caretAfterDigits } from "../src/intake.js";
 
 const sheet = (over = {}) => ({
   client: "Juan Dela Cruz",
@@ -120,5 +120,47 @@ describe("applying an intake to a scenario", () => {
     const S = { client: "default" };
     assert.equal(applyIntake(S, null), false);
     assert.equal(S.client, "default");
+  });
+});
+
+describe("amounts are grouped while they are typed", () => {
+  test("thousands are separated so eight figures can be read at a glance", () => {
+    assert.equal(commafyInput("12500000"), "12,500,000");
+    assert.equal(commafyInput("1250000"), "1,250,000");
+    assert.equal(commafyInput("999"), "999");
+    assert.equal(commafyInput("1000"), "1,000");
+  });
+
+  test("it survives being re-run on its own output", () => {
+    assert.equal(commafyInput(commafyInput("12500000")), "12,500,000");
+    assert.equal(commafyInput("₱12,500,000"), "12,500,000");
+  });
+
+  test("an empty field stays empty rather than becoming a zero", () => {
+    assert.equal(commafyInput(""), "");
+    assert.equal(commafyInput("abc"), "");
+  });
+
+  test("a decimal tail is left exactly as typed", () => {
+    assert.equal(commafyInput("1234567.5"), "1,234,567.5");
+    assert.equal(commafyInput("1234567."), "1,234,567.");
+  });
+
+  test("leading zeros are dropped, but a lone zero is not", () => {
+    assert.equal(commafyInput("007"), "7");
+    assert.equal(commafyInput("0"), "0");
+  });
+
+  test("the caret lands the same number of digits in, not characters in", () => {
+    // "12500000" with the caret after 5 digits -> "12,500,000", still after 5 digits
+    assert.equal(caretAfterDigits("12,500,000", 5), 6);
+    assert.equal(caretAfterDigits("12,500,000", 2), 2);
+    assert.equal(caretAfterDigits("12,500,000", 0), 0);
+    assert.equal(caretAfterDigits("12,500,000", 99), 10);
+  });
+
+  test("a grouped amount still parses back to a number on hand-off", () => {
+    const o = buildIntake({ client: "X", married: false, props: [{ name: "Lot", value: commafyInput("12500000") }] });
+    assert.equal(o.props[0].value, 12_500_000);
   });
 });

@@ -1057,6 +1057,35 @@ function money(v){
   return isFinite(n) && n > 0 ? n : 0;
 }
 
+// Group an amount as it is being typed, so 12500000 reads as 12,500,000 and an
+// advisor can tell twelve million from one point two at a glance. Only the
+// integer part is grouped; a decimal tail is left exactly as typed so the
+// separator does not vanish under the caret mid-keystroke.
+function commafyInput(raw){
+  var s = String(raw == null ? "" : raw).replace(/[^0-9.]/g, "");
+  if (s === "") return "";
+  var dot = s.indexOf(".");
+  var whole = dot < 0 ? s : s.slice(0, dot);
+  var rest  = dot < 0 ? ""  : "." + s.slice(dot + 1).replace(/\./g, "");
+  whole = whole.replace(/^0+(?=\d)/, "");
+  return whole.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + rest;
+}
+
+// Where the caret belongs after regrouping: the same number of digits in, not
+// the same number of characters — a comma appearing to the left would otherwise
+// push the caret one place back on every third keystroke.
+function caretAfterDigits(value, digits){
+  if (digits <= 0) return 0;
+  var seen = 0;
+  for (var i = 0; i < value.length; i++){
+    if (value[i] >= "0" && value[i] <= "9"){
+      seen++;
+      if (seen === digits) return i + 1;
+    }
+  }
+  return value.length;
+}
+
 function isoDate(v){
   return /^\d{4}-\d{2}-\d{2}$/.test(String(v || "")) ? v : "";
 }

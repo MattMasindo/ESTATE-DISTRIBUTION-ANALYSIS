@@ -1,7 +1,7 @@
 // The fact-find sheet's behaviour: repeating rows, the hand-off, and printing.
 // The mapping itself lives in intake.js so it can be tested without a DOM.
 
-import { buildIntake, stashIntake } from "./intake.js";
+import { buildIntake, stashIntake, commafyInput, caretAfterDigits } from "./intake.js";
 
 var $ = function(id){ return document.getElementById(id); };
 
@@ -71,6 +71,30 @@ function gather(){
   };
 }
 
+// Group the thousands while the advisor types. Values on this sheet run to eight
+// figures and are often read back to the client out loud; an ungrouped
+// 12500000 is the one number nobody can check at a glance.
+function groupAmount(el){
+  var caret = el.selectionStart;
+  var digitsBefore = el.value.slice(0, caret).replace(/[^0-9]/g, "").length;
+  var next = commafyInput(el.value);
+  if (next === el.value) return;
+  el.value = next;
+  var at = caretAfterDigits(next, digitsBefore);
+  try { el.setSelectionRange(at, at); } catch (e) {}   // a detached field cannot take a caret
+}
+
+function watchAmounts(){
+  ["ff-debts", "ff-liquid"].forEach(function(id){
+    $(id).addEventListener("input", function(e){ groupAmount(e.target); });
+  });
+  // Asset rows come and go, so listen on the container rather than the fields.
+  $("ff-props").addEventListener("input", function(e){
+    var el = e.target;
+    if (el.dataset && el.dataset.f === "value") groupAmount(el);
+  });
+}
+
 function say(msg, bad){
   var el = $("ff-said");
   el.textContent = msg || "";
@@ -137,6 +161,8 @@ export function wireFactfind(){
     $("ff-spousefields").style.display = "";
     say("Cleared.");
   });
+
+  watchAmounts();
 
   (function(){
     var d = new Date();

@@ -424,6 +424,35 @@ function money(v){
   return isFinite(n) && n > 0 ? n : 0;
 }
 
+// Group an amount as it is being typed, so 12500000 reads as 12,500,000 and an
+// advisor can tell twelve million from one point two at a glance. Only the
+// integer part is grouped; a decimal tail is left exactly as typed so the
+// separator does not vanish under the caret mid-keystroke.
+function commafyInput(raw){
+  var s = String(raw == null ? "" : raw).replace(/[^0-9.]/g, "");
+  if (s === "") return "";
+  var dot = s.indexOf(".");
+  var whole = dot < 0 ? s : s.slice(0, dot);
+  var rest  = dot < 0 ? ""  : "." + s.slice(dot + 1).replace(/\./g, "");
+  whole = whole.replace(/^0+(?=\d)/, "");
+  return whole.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + rest;
+}
+
+// Where the caret belongs after regrouping: the same number of digits in, not
+// the same number of characters — a comma appearing to the left would otherwise
+// push the caret one place back on every third keystroke.
+function caretAfterDigits(value, digits){
+  if (digits <= 0) return 0;
+  var seen = 0;
+  for (var i = 0; i < value.length; i++){
+    if (value[i] >= "0" && value[i] <= "9"){
+      seen++;
+      if (seen === digits) return i + 1;
+    }
+  }
+  return value.length;
+}
+
 function isoDate(v){
   return /^\d{4}-\d{2}-\d{2}$/.test(String(v || "")) ? v : "";
 }
@@ -577,6 +606,30 @@ function gather(){
   };
 }
 
+// Group the thousands while the advisor types. Values on this sheet run to eight
+// figures and are often read back to the client out loud; an ungrouped
+// 12500000 is the one number nobody can check at a glance.
+function groupAmount(el){
+  var caret = el.selectionStart;
+  var digitsBefore = el.value.slice(0, caret).replace(/[^0-9]/g, "").length;
+  var next = commafyInput(el.value);
+  if (next === el.value) return;
+  el.value = next;
+  var at = caretAfterDigits(next, digitsBefore);
+  try { el.setSelectionRange(at, at); } catch (e) {}   // a detached field cannot take a caret
+}
+
+function watchAmounts(){
+  ["ff-debts", "ff-liquid"].forEach(function(id){
+    $(id).addEventListener("input", function(e){ groupAmount(e.target); });
+  });
+  // Asset rows come and go, so listen on the container rather than the fields.
+  $("ff-props").addEventListener("input", function(e){
+    var el = e.target;
+    if (el.dataset && el.dataset.f === "value") groupAmount(el);
+  });
+}
+
 function say(msg, bad){
   var el = $("ff-said");
   el.textContent = msg || "";
@@ -643,6 +696,8 @@ function wireFactfind(){
     $("ff-spousefields").style.display = "";
     say("Cleared.");
   });
+
+  watchAmounts();
 
   (function(){
     var d = new Date();
