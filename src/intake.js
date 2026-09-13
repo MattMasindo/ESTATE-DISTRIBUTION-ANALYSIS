@@ -137,3 +137,59 @@ export function takeIntake(){
     return JSON.parse(raw);
   } catch (e) { return null; }
 }
+
+/* ---------- existing life insurance ---------- */
+
+// "Same" is what an advisor writes when the owner insures themselves. It is a
+// shorthand, not a name, so it is resolved to the owner rather than stored.
+export function resolveInsured(insured, owner){
+  var v = String(insured == null ? "" : insured).trim();
+  var o = String(owner == null ? "" : owner).trim();
+  return (/^same$/i.test(v) && o) ? o : v;
+}
+
+// How long the policy has been running, inception to today. Whole months, because
+// a policy's age is what decides incontestability and surrender values, and
+// nobody quotes those in days.
+export function policyDuration(fromISO, onISO){
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(fromISO || ""))) return "";
+  var from = new Date(fromISO + "T00:00:00Z");
+  var on = onISO ? new Date(onISO + "T00:00:00Z") : new Date();
+  if (isNaN(from) || isNaN(on) || on < from) return "";
+  var months = (on.getUTCFullYear() - from.getUTCFullYear()) * 12 + (on.getUTCMonth() - from.getUTCMonth());
+  if (on.getUTCDate() < from.getUTCDate()) months--;
+  if (months < 0) months = 0;
+  var y = Math.floor(months / 12), m = months % 12;
+  var parts = [];
+  if (y) parts.push(y + (y === 1 ? " year" : " years"));
+  if (m) parts.push(m + (m === 1 ? " month" : " months"));
+  return parts.length ? parts.join(", ") : "under a month";
+}
+
+var STATUS = ["inforce", "lapsed", "verify"];
+var PLANS  = ["traditional", "vul"];
+var BENEF  = ["revocable", "irrevocable", "unknown"];
+
+// Policies are recorded, not computed. The analysis sizes the cover a plan
+// NEEDS; what the client already holds is a fact about the estate, and the two
+// are kept apart on purpose.
+export function buildPolicies(rows){
+  return (rows || []).map(function(r){
+    r = r || {};
+    var owner = String(r.owner || "").trim();
+    return {
+      insurer:   String(r.insurer || "").trim(),
+      product:   String(r.product || "").trim(),
+      owner:     owner,
+      insured:   resolveInsured(r.insured, owner),
+      inception: isoDate(r.inception),
+      status:    pick(r.status, STATUS, "verify"),
+      coverage:  money(r.coverage),
+      plan:      pick(r.plan, PLANS, "traditional"),
+      beneficiary: String(r.beneficiary || "").trim(),
+      revocability: pick(r.revocability, BENEF, "unknown")
+    };
+  }).filter(function(p){
+    return p.insurer !== "" || p.product !== "" || p.coverage > 0;   // drop untouched cards
+  });
+}

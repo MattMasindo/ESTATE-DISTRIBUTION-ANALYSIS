@@ -94,19 +94,24 @@
     <div class="rows" id="ff-props"></div>
     <button class="add no-print" type="button" data-add="props">+ Add asset</button>
 
-    <div class="grid g3" style="margin-top:18px">
+    <div class="grid g2" style="margin-top:18px">
       <div class="f"><label for="ff-debts">Total liabilities &#8369;</label><input type="text" id="ff-debts" class="num" placeholder="0"></div>
       <div class="f">
         <label for="ff-debton">Charged against</label>
         <select id="ff-debton"><option value="conjugal">The community / conjugal estate</option><option value="exclusive">The client's exclusive property</option></select>
       </div>
-      <div class="f"><label for="ff-insurance">Existing life insurance</label><input type="text" id="ff-insurance" placeholder="Insurer, face amount, beneficiary"></div>
     </div>
-    <p class="hint" style="margin-top:9px">Insurance with an <strong>irrevocable</strong> beneficiary sits outside the estate entirely &mdash; note which it is, it changes the answer.</p>
   </section>
 
   <section class="panel">
-    <div class="panel-head"><h2>Liquidity</h2><span class="n">5</span></div>
+    <div class="panel-head"><h2>Existing life insurance</h2><span class="n">5</span></div>
+    <p class="note">One card per policy &mdash; add as many as the client holds. Two fields decide whether a policy is even part of the estate: an <strong>irrevocable</strong> beneficiary puts the proceeds outside it entirely, and a <strong>lapsed</strong> policy is not cover at all. If the client is not certain a policy is in force, mark it <em>to be verified</em> rather than guessing &mdash; then verify it with the insurer before the recommendation.</p>
+    <div class="policies" id="ff-policies"></div>
+    <button class="add no-print" type="button" data-add="policies">+ Add policy</button>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head"><h2>Liquidity</h2><span class="n">6</span></div>
     <div class="ask">
       <q>Of everything we just listed, how much could your family turn into cash within twelve months &mdash; without selling anything at a loss?</q>
       <div class="why">Ask it out loud, in these words. Estate tax is due one year from death. This number is the difference between a plan and a forced sale.</div>
@@ -118,7 +123,7 @@
   </section>
 
   <section class="panel">
-    <div class="panel-head"><h2>Intent and friction</h2><span class="n">6</span></div>
+    <div class="panel-head"><h2>Intent and friction</h2><span class="n">7</span></div>
     <p class="note">This section is the one the calculator cannot compute. Write it in the client's own words.</p>
     <div class="f" style="margin-bottom:13px">
       <label for="ff-intent">Who should receive what</label>
@@ -145,7 +150,7 @@
   </section>
 
   <section class="panel">
-    <div class="panel-head"><h2>Documents to collect</h2><span class="n">7</span></div>
+    <div class="panel-head"><h2>Documents to collect</h2><span class="n">8</span></div>
     <div class="ticks">
       <div class="check"><input type="checkbox" id="d1"><label for="d1">Marriage certificate</label></div>
       <div class="check"><input type="checkbox" id="d2"><label for="d2">Prenuptial agreement</label></div>
@@ -160,13 +165,14 @@
   </section>
 
   <section class="panel">
-    <div class="panel-head"><h2>Before leaving the meeting</h2><span class="n">8</span></div>
+    <div class="panel-head"><h2>Before leaving the meeting</h2><span class="n">9</span></div>
     <div class="ticks">
       <div class="check"><input type="checkbox" id="c1"><label for="c1">Marriage date is exact, not approximate</label></div>
       <div class="check"><input type="checkbox" id="c2"><label for="c2">Every asset has a &ldquo;how acquired&rdquo;</label></div>
       <div class="check"><input type="checkbox" id="c3"><label for="c3">Estimated values marked (est.)</label></div>
       <div class="check"><input type="checkbox" id="c4"><label for="c4">Liquidity question asked out loud</label></div>
       <div class="check"><input type="checkbox" id="c5"><label for="c5">Date of birth captured for every child</label></div>
+      <div class="check"><input type="checkbox" id="c7"><label for="c7">Every policy marked in force, lapsed or to verify</label></div>
       <div class="check"><input type="checkbox" id="c6"><label for="c6">Can this be run in the analysis right now?</label></div>
     </div>
     <div class="f" style="margin-top:14px"><label for="ff-missing">If not, what is missing</label><input type="text" id="ff-missing"></div>

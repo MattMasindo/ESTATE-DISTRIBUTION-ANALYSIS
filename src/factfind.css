@@ -134,3 +134,19 @@ button.add:hover{border-color:var(--accent);background:var(--accent-soft)}
   .kill{display:none}
   .foot{border-top:.5pt solid #999;margin-top:8pt;padding-top:5pt;font-size:8pt}
 }
+
+/* ---------- existing life insurance ---------- */
+.policies{display:flex;flex-direction:column;gap:14px}
+.policy{border:1px solid var(--line);border-radius:var(--radius);padding:14px 15px;background:var(--surface-2)}
+.policy-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:11px;padding-bottom:7px;border-bottom:1px solid var(--line)}
+.policy-n{color:var(--accent)}
+.policy input[readonly]{color:var(--ink-2);border-bottom-style:dotted;cursor:default}
+.policy input[readonly]:focus{outline:none}
+
+@media print{
+  .policies{gap:7pt}
+  .policy{border:.5pt solid #777;background:none;padding:6pt 8pt;break-inside:avoid;page-break-inside:avoid}
+  .policy-head{margin-bottom:5pt;padding-bottom:3pt;border-bottom:.4pt solid #aaa}
+  .policy-n{font-size:8pt;color:#000}
+  .policy input[readonly]{color:#000}
+}

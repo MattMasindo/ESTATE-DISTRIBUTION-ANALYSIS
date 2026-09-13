@@ -7,7 +7,8 @@
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 
-import { buildIntake, applyIntake, commafyInput, caretAfterDigits } from "../src/intake.js";
+import { buildIntake, applyIntake, commafyInput, caretAfterDigits,
+         buildPolicies, resolveInsured, policyDuration } from "../src/intake.js";
 
 const sheet = (over = {}) => ({
   client: "Juan Dela Cruz",
@@ -162,5 +163,67 @@ describe("amounts are grouped while they are typed", () => {
   test("a grouped amount still parses back to a number on hand-off", () => {
     const o = buildIntake({ client: "X", married: false, props: [{ name: "Lot", value: commafyInput("12500000") }] });
     assert.equal(o.props[0].value, 12_500_000);
+  });
+});
+
+describe("existing life insurance", () => {
+  test('"same" means the owner, in any casing', () => {
+    assert.equal(resolveInsured("same", "Ramon Villanueva"), "Ramon Villanueva");
+    assert.equal(resolveInsured("  SAME  ", "Ramon Villanueva"), "Ramon Villanueva");
+    assert.equal(resolveInsured("Same", "Ramon"), "Ramon");
+  });
+
+  test('"same" with no owner yet is left alone rather than blanked', () => {
+    assert.equal(resolveInsured("same", ""), "same");
+  });
+
+  test("a real name is never overwritten by the owner", () => {
+    assert.equal(resolveInsured("Elena Villanueva", "Ramon Villanueva"), "Elena Villanueva");
+    assert.equal(resolveInsured("Samuel", "Ramon"), "Samuel");   // not "same"
+  });
+
+  test("duration counts whole months from inception to the given day", () => {
+    assert.equal(policyDuration("2019-06-15", "2026-09-13"), "7 years, 2 months");
+    assert.equal(policyDuration("2025-09-13", "2026-09-13"), "1 year");
+    assert.equal(policyDuration("2026-08-13", "2026-09-13"), "1 month");
+    assert.equal(policyDuration("2026-09-01", "2026-09-13"), "under a month");
+  });
+
+  test("the month does not tick over until the day of the month is reached", () => {
+    assert.equal(policyDuration("2026-08-20", "2026-09-13"), "under a month");
+    assert.equal(policyDuration("2026-08-20", "2026-09-20"), "1 month");
+  });
+
+  test("a missing or impossible inception date yields nothing, not a guess", () => {
+    assert.equal(policyDuration("", "2026-09-13"), "");
+    assert.equal(policyDuration("last June", "2026-09-13"), "");
+    assert.equal(policyDuration("2027-01-01", "2026-09-13"), "");   // not yet incepted
+  });
+
+  test("a policy is recorded with its coverage read as a number", () => {
+    const [p] = buildPolicies([{ insurer: "Sun Life", product: "Maxilink Prime", owner: "Ramon",
+                                 insured: "same", inception: "2019-06-15", status: "inforce",
+                                 coverage: "₱5,000,000", plan: "vul",
+                                 beneficiary: "Elena", revocability: "irrevocable" }]);
+    assert.equal(p.insured, "Ramon");
+    assert.equal(p.coverage, 5_000_000);
+    assert.equal(p.plan, "vul");
+    assert.equal(p.revocability, "irrevocable");
+  });
+
+  test("an unverified policy stays unverified — nothing is assumed in force", () => {
+    const [p] = buildPolicies([{ insurer: "Sun Life", status: "" }]);
+    assert.equal(p.status, "verify");
+    assert.equal(p.revocability, "unknown");
+  });
+
+  test("untouched cards are dropped, but a named policy with no figure is kept", () => {
+    const out = buildPolicies([
+      { insurer: "Sun Life", coverage: "1000000" },
+      { insurer: "", product: "", coverage: "" },
+      { product: "An old plan nobody can find", coverage: "" }
+    ]);
+    assert.equal(out.length, 2);
+    assert.equal(out[1].product, "An old plan nobody can find");
   });
 });

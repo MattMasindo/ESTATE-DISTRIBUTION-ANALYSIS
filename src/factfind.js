@@ -1,11 +1,12 @@
 // The fact-find sheet's behaviour: repeating rows, the hand-off, and printing.
 // The mapping itself lives in intake.js so it can be tested without a DOM.
 
-import { buildIntake, stashIntake, commafyInput, caretAfterDigits } from "./intake.js";
+import { buildIntake, buildPolicies, stashIntake, commafyInput, caretAfterDigits,
+         resolveInsured, policyDuration } from "./intake.js";
 
 var $ = function(id){ return document.getElementById(id); };
 
-var SEED = { lc:3, ilc:2, lp:2, props:6 };   // enough ruled lines for a printed sheet
+var SEED = { lc:3, ilc:2, lp:2, props:6, policies:1 };   // enough ruled lines for a printed sheet
 
 function personRow(key){
   var d = document.createElement("div");
@@ -40,8 +41,55 @@ function assetRow(){
   return d;
 }
 
+function policyCard(){
+  var d = document.createElement("div");
+  d.className = "policy";
+  d.innerHTML =
+    '<div class="policy-head"><span class="eyebrow policy-n"></span>' +
+      '<button class="kill no-print" type="button" title="Remove this policy">&times;</button></div>' +
+    '<div class="grid g2">' +
+      '<div class="f"><label>Insurance company</label><input type="text" data-f="insurer" placeholder="Sun Life of Canada"></div>' +
+      '<div class="f"><label>Product name</label><input type="text" data-f="product" placeholder="Sun Maxilink Prime"></div>' +
+      '<div class="f"><label>Owner</label><input type="text" data-f="owner" placeholder="Who pays and controls it"></div>' +
+      '<div class="f"><label>Insured</label><input type="text" data-f="insured" placeholder="Type same if it is the owner">' +
+        '<span class="hint">Type <strong>same</strong> and the owner\'s name fills in.</span></div>' +
+    '</div>' +
+    '<div class="grid g3" style="margin-top:13px">' +
+      '<div class="f"><label>Date of inception</label><input type="date" data-f="inception"></div>' +
+      '<div class="f"><label>Policy duration</label><input type="text" data-f="duration" readonly tabindex="-1" placeholder="&mdash;"><span class="hint">Counted to today.</span></div>' +
+      '<div class="f"><label>Policy in force</label>' +
+        '<select data-f="status">' +
+          '<option value="verify">To be verified</option>' +
+          '<option value="inforce">Yes &mdash; in force</option>' +
+          '<option value="lapsed">Lapsed</option>' +
+        '</select></div>' +
+    '</div>' +
+    '<div class="grid g3" style="margin-top:13px">' +
+      '<div class="f"><label>Insurance coverage &#8369;</label><input type="text" data-f="coverage" class="num" placeholder="0"></div>' +
+      '<div class="f"><label>Type</label>' +
+        '<select data-f="plan"><option value="traditional">Traditional</option><option value="vul">VUL</option></select></div>' +
+      '<div class="f"><label>Beneficiary designation</label>' +
+        '<select data-f="revocability">' +
+          '<option value="unknown">Not yet confirmed</option>' +
+          '<option value="revocable">Revocable</option>' +
+          '<option value="irrevocable">Irrevocable &mdash; outside the estate</option>' +
+        '</select></div>' +
+    '</div>' +
+    '<div class="f" style="margin-top:13px"><label>Name of beneficiary</label>' +
+      '<input type="text" data-f="beneficiary" placeholder="Full name, and the relationship"></div>';
+  return d;
+}
+
+function numberPolicies(){
+  var cards = $("ff-policies").querySelectorAll(".policy");
+  Array.prototype.forEach.call(cards, function(c, i){
+    c.querySelector(".policy-n").textContent = "Policy " + (i + 1);
+  });
+}
+
 function add(key){
   var host = $("ff-" + key);
+  if (key === "policies"){ host.appendChild(policyCard()); numberPolicies(); return; }
   host.appendChild(key === "props" ? assetRow() : personRow(key));
 }
 
@@ -69,6 +117,14 @@ function gather(){
     debts:  $("ff-debts").value,
     debtOn: $("ff-debton").value
   };
+}
+
+function readPolicies(){
+  return Array.prototype.map.call($("ff-policies").querySelectorAll(".policy"), function(card){
+    var o = {};
+    card.querySelectorAll("[data-f]").forEach(function(el){ o[el.dataset.f] = el.value; });
+    return o;
+  });
 }
 
 // Group the thousands while the advisor types. Values on this sheet run to eight
@@ -102,7 +158,7 @@ function say(msg, bad){
 }
 
 export function wireFactfind(){
-  ["lc","ilc","lp","props"].forEach(function(k){
+  ["lc","ilc","lp","props","policies"].forEach(function(k){
     for (var i = 0; i < SEED[k]; i++) add(k);
   });
 
@@ -114,6 +170,45 @@ export function wireFactfind(){
       var rows = $("ff-" + k).querySelectorAll('.row input[data-f="name"]');
       if (rows.length) rows[rows.length - 1].focus();
     });
+  });
+
+  $("ff-policies").addEventListener("click", function(e){
+    var b = e.target.closest(".kill"); if (!b) return;
+    var card = b.closest(".policy");
+    if ($("ff-policies").querySelectorAll(".policy").length > 1) card.remove();
+    else card.querySelectorAll("input,select").forEach(function(el){
+      if (el.tagName === "SELECT") el.selectedIndex = 0; else el.value = "";
+    });
+    numberPolicies(); say("");
+  });
+
+  // "Same" resolves to the owner, in either order — the advisor may type the
+  // shorthand before the name it stands for.
+  $("ff-policies").addEventListener("input", function(e){
+    var el = e.target; if (!el.dataset || !el.dataset.f) return;
+    var card = el.closest(".policy");
+    var ownerEl   = card.querySelector('[data-f="owner"]');
+    var insuredEl = card.querySelector('[data-f="insured"]');
+
+    if (el.dataset.f === "coverage") groupAmount(el);
+
+    if (el.dataset.f === "insured" && /^same$/i.test(el.value.trim()) && ownerEl.value.trim()){
+      insuredEl.value = ownerEl.value.trim();
+    }
+    if (el.dataset.f === "owner"){
+      var cur = insuredEl.value.trim();
+      if (cur === "" || /^same$/i.test(cur) || cur === insuredEl.dataset.mirrored){
+        insuredEl.value = ownerEl.value.trim();
+        insuredEl.dataset.mirrored = insuredEl.value;   // keep mirroring until edited by hand
+      }
+    }
+    if (el.dataset.f === "insured") delete insuredEl.dataset.mirrored;
+  });
+
+  $("ff-policies").addEventListener("change", function(e){
+    if (!e.target.dataset || e.target.dataset.f !== "inception") return;
+    var card = e.target.closest(".policy");
+    card.querySelector('[data-f="duration"]').value = policyDuration(e.target.value);
   });
 
   ["lc","ilc","lp","props"].forEach(function(k){
@@ -135,6 +230,9 @@ export function wireFactfind(){
   $("ff-go").addEventListener("click", function(){
     var raw = gather();
     var payload = buildIntake(raw);
+    // Recorded, not computed: the analysis sizes the cover a plan needs, and
+    // what the client already holds is a separate fact about the estate.
+    payload.policies = buildPolicies(readPolicies());
 
     if (!payload.client){ say("Name the client first.", true); $("ff-client").focus(); return; }
     if (payload.spouse && !payload.date){

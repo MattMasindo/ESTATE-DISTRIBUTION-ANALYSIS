@@ -195,6 +195,22 @@ button.add:hover{border-color:var(--accent);background:var(--accent-soft)}
   .kill{display:none}
   .foot{border-top:.5pt solid #999;margin-top:8pt;padding-top:5pt;font-size:8pt}
 }
+
+/* ---------- existing life insurance ---------- */
+.policies{display:flex;flex-direction:column;gap:14px}
+.policy{border:1px solid var(--line);border-radius:var(--radius);padding:14px 15px;background:var(--surface-2)}
+.policy-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:11px;padding-bottom:7px;border-bottom:1px solid var(--line)}
+.policy-n{color:var(--accent)}
+.policy input[readonly]{color:var(--ink-2);border-bottom-style:dotted;cursor:default}
+.policy input[readonly]:focus{outline:none}
+
+@media print{
+  .policies{gap:7pt}
+  .policy{border:.5pt solid #777;background:none;padding:6pt 8pt;break-inside:avoid;page-break-inside:avoid}
+  .policy-head{margin-bottom:5pt;padding-bottom:3pt;border-bottom:.4pt solid #aaa}
+  .policy-n{font-size:8pt;color:#000}
+  .policy input[readonly]{color:#000}
+}
 </style>
 </head>
 <body>
@@ -294,19 +310,24 @@ button.add:hover{border-color:var(--accent);background:var(--accent-soft)}
     <div class="rows" id="ff-props"></div>
     <button class="add no-print" type="button" data-add="props">+ Add asset</button>
 
-    <div class="grid g3" style="margin-top:18px">
+    <div class="grid g2" style="margin-top:18px">
       <div class="f"><label for="ff-debts">Total liabilities &#8369;</label><input type="text" id="ff-debts" class="num" placeholder="0"></div>
       <div class="f">
         <label for="ff-debton">Charged against</label>
         <select id="ff-debton"><option value="conjugal">The community / conjugal estate</option><option value="exclusive">The client's exclusive property</option></select>
       </div>
-      <div class="f"><label for="ff-insurance">Existing life insurance</label><input type="text" id="ff-insurance" placeholder="Insurer, face amount, beneficiary"></div>
     </div>
-    <p class="hint" style="margin-top:9px">Insurance with an <strong>irrevocable</strong> beneficiary sits outside the estate entirely &mdash; note which it is, it changes the answer.</p>
   </section>
 
   <section class="panel">
-    <div class="panel-head"><h2>Liquidity</h2><span class="n">5</span></div>
+    <div class="panel-head"><h2>Existing life insurance</h2><span class="n">5</span></div>
+    <p class="note">One card per policy &mdash; add as many as the client holds. Two fields decide whether a policy is even part of the estate: an <strong>irrevocable</strong> beneficiary puts the proceeds outside it entirely, and a <strong>lapsed</strong> policy is not cover at all. If the client is not certain a policy is in force, mark it <em>to be verified</em> rather than guessing &mdash; then verify it with the insurer before the recommendation.</p>
+    <div class="policies" id="ff-policies"></div>
+    <button class="add no-print" type="button" data-add="policies">+ Add policy</button>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head"><h2>Liquidity</h2><span class="n">6</span></div>
     <div class="ask">
       <q>Of everything we just listed, how much could your family turn into cash within twelve months &mdash; without selling anything at a loss?</q>
       <div class="why">Ask it out loud, in these words. Estate tax is due one year from death. This number is the difference between a plan and a forced sale.</div>
@@ -318,7 +339,7 @@ button.add:hover{border-color:var(--accent);background:var(--accent-soft)}
   </section>
 
   <section class="panel">
-    <div class="panel-head"><h2>Intent and friction</h2><span class="n">6</span></div>
+    <div class="panel-head"><h2>Intent and friction</h2><span class="n">7</span></div>
     <p class="note">This section is the one the calculator cannot compute. Write it in the client's own words.</p>
     <div class="f" style="margin-bottom:13px">
       <label for="ff-intent">Who should receive what</label>
@@ -345,7 +366,7 @@ button.add:hover{border-color:var(--accent);background:var(--accent-soft)}
   </section>
 
   <section class="panel">
-    <div class="panel-head"><h2>Documents to collect</h2><span class="n">7</span></div>
+    <div class="panel-head"><h2>Documents to collect</h2><span class="n">8</span></div>
     <div class="ticks">
       <div class="check"><input type="checkbox" id="d1"><label for="d1">Marriage certificate</label></div>
       <div class="check"><input type="checkbox" id="d2"><label for="d2">Prenuptial agreement</label></div>
@@ -360,13 +381,14 @@ button.add:hover{border-color:var(--accent);background:var(--accent-soft)}
   </section>
 
   <section class="panel">
-    <div class="panel-head"><h2>Before leaving the meeting</h2><span class="n">8</span></div>
+    <div class="panel-head"><h2>Before leaving the meeting</h2><span class="n">9</span></div>
     <div class="ticks">
       <div class="check"><input type="checkbox" id="c1"><label for="c1">Marriage date is exact, not approximate</label></div>
       <div class="check"><input type="checkbox" id="c2"><label for="c2">Every asset has a &ldquo;how acquired&rdquo;</label></div>
       <div class="check"><input type="checkbox" id="c3"><label for="c3">Estimated values marked (est.)</label></div>
       <div class="check"><input type="checkbox" id="c4"><label for="c4">Liquidity question asked out loud</label></div>
       <div class="check"><input type="checkbox" id="c5"><label for="c5">Date of birth captured for every child</label></div>
+      <div class="check"><input type="checkbox" id="c7"><label for="c7">Every policy marked in force, lapsed or to verify</label></div>
       <div class="check"><input type="checkbox" id="c6"><label for="c6">Can this be run in the analysis right now?</label></div>
     </div>
     <div class="f" style="margin-top:14px"><label for="ff-missing">If not, what is missing</label><input type="text" id="ff-missing"></div>
@@ -533,6 +555,62 @@ function takeIntake(){
   } catch (e) { return null; }
 }
 
+/* ---------- existing life insurance ---------- */
+
+// "Same" is what an advisor writes when the owner insures themselves. It is a
+// shorthand, not a name, so it is resolved to the owner rather than stored.
+function resolveInsured(insured, owner){
+  var v = String(insured == null ? "" : insured).trim();
+  var o = String(owner == null ? "" : owner).trim();
+  return (/^same$/i.test(v) && o) ? o : v;
+}
+
+// How long the policy has been running, inception to today. Whole months, because
+// a policy's age is what decides incontestability and surrender values, and
+// nobody quotes those in days.
+function policyDuration(fromISO, onISO){
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(fromISO || ""))) return "";
+  var from = new Date(fromISO + "T00:00:00Z");
+  var on = onISO ? new Date(onISO + "T00:00:00Z") : new Date();
+  if (isNaN(from) || isNaN(on) || on < from) return "";
+  var months = (on.getUTCFullYear() - from.getUTCFullYear()) * 12 + (on.getUTCMonth() - from.getUTCMonth());
+  if (on.getUTCDate() < from.getUTCDate()) months--;
+  if (months < 0) months = 0;
+  var y = Math.floor(months / 12), m = months % 12;
+  var parts = [];
+  if (y) parts.push(y + (y === 1 ? " year" : " years"));
+  if (m) parts.push(m + (m === 1 ? " month" : " months"));
+  return parts.length ? parts.join(", ") : "under a month";
+}
+
+var STATUS = ["inforce", "lapsed", "verify"];
+var PLANS  = ["traditional", "vul"];
+var BENEF  = ["revocable", "irrevocable", "unknown"];
+
+// Policies are recorded, not computed. The analysis sizes the cover a plan
+// NEEDS; what the client already holds is a fact about the estate, and the two
+// are kept apart on purpose.
+function buildPolicies(rows){
+  return (rows || []).map(function(r){
+    r = r || {};
+    var owner = String(r.owner || "").trim();
+    return {
+      insurer:   String(r.insurer || "").trim(),
+      product:   String(r.product || "").trim(),
+      owner:     owner,
+      insured:   resolveInsured(r.insured, owner),
+      inception: isoDate(r.inception),
+      status:    pick(r.status, STATUS, "verify"),
+      coverage:  money(r.coverage),
+      plan:      pick(r.plan, PLANS, "traditional"),
+      beneficiary: String(r.beneficiary || "").trim(),
+      revocability: pick(r.revocability, BENEF, "unknown")
+    };
+  }).filter(function(p){
+    return p.insurer !== "" || p.product !== "" || p.coverage > 0;   // drop untouched cards
+  });
+}
+
 // ---------- src/factfind.js ----------
 // The fact-find sheet's behaviour: repeating rows, the hand-off, and printing.
 // The mapping itself lives in intake.js so it can be tested without a DOM.
@@ -540,7 +618,7 @@ function takeIntake(){
 
 var $ = function(id){ return document.getElementById(id); };
 
-var SEED = { lc:3, ilc:2, lp:2, props:6 };   // enough ruled lines for a printed sheet
+var SEED = { lc:3, ilc:2, lp:2, props:6, policies:1 };   // enough ruled lines for a printed sheet
 
 function personRow(key){
   var d = document.createElement("div");
@@ -575,8 +653,55 @@ function assetRow(){
   return d;
 }
 
+function policyCard(){
+  var d = document.createElement("div");
+  d.className = "policy";
+  d.innerHTML =
+    '<div class="policy-head"><span class="eyebrow policy-n"></span>' +
+      '<button class="kill no-print" type="button" title="Remove this policy">&times;</button></div>' +
+    '<div class="grid g2">' +
+      '<div class="f"><label>Insurance company</label><input type="text" data-f="insurer" placeholder="Sun Life of Canada"></div>' +
+      '<div class="f"><label>Product name</label><input type="text" data-f="product" placeholder="Sun Maxilink Prime"></div>' +
+      '<div class="f"><label>Owner</label><input type="text" data-f="owner" placeholder="Who pays and controls it"></div>' +
+      '<div class="f"><label>Insured</label><input type="text" data-f="insured" placeholder="Type same if it is the owner">' +
+        '<span class="hint">Type <strong>same</strong> and the owner\'s name fills in.</span></div>' +
+    '</div>' +
+    '<div class="grid g3" style="margin-top:13px">' +
+      '<div class="f"><label>Date of inception</label><input type="date" data-f="inception"></div>' +
+      '<div class="f"><label>Policy duration</label><input type="text" data-f="duration" readonly tabindex="-1" placeholder="&mdash;"><span class="hint">Counted to today.</span></div>' +
+      '<div class="f"><label>Policy in force</label>' +
+        '<select data-f="status">' +
+          '<option value="verify">To be verified</option>' +
+          '<option value="inforce">Yes &mdash; in force</option>' +
+          '<option value="lapsed">Lapsed</option>' +
+        '</select></div>' +
+    '</div>' +
+    '<div class="grid g3" style="margin-top:13px">' +
+      '<div class="f"><label>Insurance coverage &#8369;</label><input type="text" data-f="coverage" class="num" placeholder="0"></div>' +
+      '<div class="f"><label>Type</label>' +
+        '<select data-f="plan"><option value="traditional">Traditional</option><option value="vul">VUL</option></select></div>' +
+      '<div class="f"><label>Beneficiary designation</label>' +
+        '<select data-f="revocability">' +
+          '<option value="unknown">Not yet confirmed</option>' +
+          '<option value="revocable">Revocable</option>' +
+          '<option value="irrevocable">Irrevocable &mdash; outside the estate</option>' +
+        '</select></div>' +
+    '</div>' +
+    '<div class="f" style="margin-top:13px"><label>Name of beneficiary</label>' +
+      '<input type="text" data-f="beneficiary" placeholder="Full name, and the relationship"></div>';
+  return d;
+}
+
+function numberPolicies(){
+  var cards = $("ff-policies").querySelectorAll(".policy");
+  Array.prototype.forEach.call(cards, function(c, i){
+    c.querySelector(".policy-n").textContent = "Policy " + (i + 1);
+  });
+}
+
 function add(key){
   var host = $("ff-" + key);
+  if (key === "policies"){ host.appendChild(policyCard()); numberPolicies(); return; }
   host.appendChild(key === "props" ? assetRow() : personRow(key));
 }
 
@@ -604,6 +729,14 @@ function gather(){
     debts:  $("ff-debts").value,
     debtOn: $("ff-debton").value
   };
+}
+
+function readPolicies(){
+  return Array.prototype.map.call($("ff-policies").querySelectorAll(".policy"), function(card){
+    var o = {};
+    card.querySelectorAll("[data-f]").forEach(function(el){ o[el.dataset.f] = el.value; });
+    return o;
+  });
 }
 
 // Group the thousands while the advisor types. Values on this sheet run to eight
@@ -637,7 +770,7 @@ function say(msg, bad){
 }
 
 function wireFactfind(){
-  ["lc","ilc","lp","props"].forEach(function(k){
+  ["lc","ilc","lp","props","policies"].forEach(function(k){
     for (var i = 0; i < SEED[k]; i++) add(k);
   });
 
@@ -649,6 +782,45 @@ function wireFactfind(){
       var rows = $("ff-" + k).querySelectorAll('.row input[data-f="name"]');
       if (rows.length) rows[rows.length - 1].focus();
     });
+  });
+
+  $("ff-policies").addEventListener("click", function(e){
+    var b = e.target.closest(".kill"); if (!b) return;
+    var card = b.closest(".policy");
+    if ($("ff-policies").querySelectorAll(".policy").length > 1) card.remove();
+    else card.querySelectorAll("input,select").forEach(function(el){
+      if (el.tagName === "SELECT") el.selectedIndex = 0; else el.value = "";
+    });
+    numberPolicies(); say("");
+  });
+
+  // "Same" resolves to the owner, in either order — the advisor may type the
+  // shorthand before the name it stands for.
+  $("ff-policies").addEventListener("input", function(e){
+    var el = e.target; if (!el.dataset || !el.dataset.f) return;
+    var card = el.closest(".policy");
+    var ownerEl   = card.querySelector('[data-f="owner"]');
+    var insuredEl = card.querySelector('[data-f="insured"]');
+
+    if (el.dataset.f === "coverage") groupAmount(el);
+
+    if (el.dataset.f === "insured" && /^same$/i.test(el.value.trim()) && ownerEl.value.trim()){
+      insuredEl.value = ownerEl.value.trim();
+    }
+    if (el.dataset.f === "owner"){
+      var cur = insuredEl.value.trim();
+      if (cur === "" || /^same$/i.test(cur) || cur === insuredEl.dataset.mirrored){
+        insuredEl.value = ownerEl.value.trim();
+        insuredEl.dataset.mirrored = insuredEl.value;   // keep mirroring until edited by hand
+      }
+    }
+    if (el.dataset.f === "insured") delete insuredEl.dataset.mirrored;
+  });
+
+  $("ff-policies").addEventListener("change", function(e){
+    if (!e.target.dataset || e.target.dataset.f !== "inception") return;
+    var card = e.target.closest(".policy");
+    card.querySelector('[data-f="duration"]').value = policyDuration(e.target.value);
   });
 
   ["lc","ilc","lp","props"].forEach(function(k){
@@ -670,6 +842,9 @@ function wireFactfind(){
   $("ff-go").addEventListener("click", function(){
     var raw = gather();
     var payload = buildIntake(raw);
+    // Recorded, not computed: the analysis sizes the cover a plan needs, and
+    // what the client already holds is a separate fact about the estate.
+    payload.policies = buildPolicies(readPolicies());
 
     if (!payload.client){ say("Name the client first.", true); $("ff-client").focus(); return; }
     if (payload.spouse && !payload.date){
