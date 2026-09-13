@@ -85,9 +85,9 @@ function benRow(){
   var d = document.createElement("div");
   d.className = "row ben";
   d.innerHTML =
-    '<input type="text" data-b="name" aria-label="Beneficiary name">' +
+    '<input type="text" data-b="name" aria-label="Beneficiary name" placeholder="Beneficiary name">' +
     '<input type="text" data-b="relationship" aria-label="Relationship" placeholder="Spouse, child">' +
-    '<input type="text" data-b="share" class="num" aria-label="Share" placeholder="100">' +
+    '<input type="text" data-b="share" class="num" aria-label="Share" placeholder="Share %">' +
     '<select data-b="role"><option value="primary">Primary</option><option value="contingent">Contingent</option></select>' +
     '<select data-b="revocability">' +
       '<option value="unknown">Not confirmed</option>' +
